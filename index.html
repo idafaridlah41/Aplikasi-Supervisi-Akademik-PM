@@ -30,6 +30,13 @@
             background-color: #ecfdf5;
         }
         
+        /* Custom Auto-Resize Textarea Style */
+        .auto-expand {
+            field-sizing: content;
+            min-height: 2.5rem;
+            resize: none;
+        }
+
         /* Custom Print Styling - Specifically targeting from Identity section to Signatures */
         @media print {
             body * {
@@ -49,7 +56,7 @@
                 margin: 0;
                 padding: 0;
                 background: white !important;
-                font-size: 10.5pt;
+                font-size: 10pt;
                 color: black !important;
             }
             .page-break {
@@ -59,6 +66,7 @@
                 box-shadow: none !important;
                 border: 1px solid #aaa !important;
             }
+            /* Wrap text and print-friendly style for input, select, textarea */
             input, select, textarea {
                 border: none !important;
                 background: transparent !important;
@@ -67,36 +75,25 @@
                 resize: none !important;
                 padding: 0 !important;
                 font-weight: 500 !important;
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                overflow: visible !important;
+                height: auto !important;
+                display: block !important;
+                width: 100% !important;
+            }
+            table {
+                width: 100% !important;
+                table-layout: auto !important;
+            }
+            td, th {
+                word-break: break-word !important;
+                white-space: normal !important;
             }
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
-
-<!-- Chosen Palette: Warm Professional Emerald (Background: Slate-50, Primary: Emerald-700/600, Secondary: Indigo-700, Accent: Amber-500, Text: Slate-800) -->
-
-<!-- Application Structure Plan:
-    Aplikasi didesain dalam format Single-Page Application (SPA) berbasis Tab Navigasi & Modal Engine Pratinjau/Cetak yang sinkron secara real-time:
-    1. Header & Menu Akses Cepat Cetak/Pratinjau: Meliputi tombol Pratinjau Dokumen, Cetak Dokumen PDF, dan Unduh Dokumen.
-    2. Modul Sinkronisasi Navigasi & Cetak:
-       - Ketika tab Pra-Observasi aktif -> Cetak/Pratinjau langsung menyasar Lembar 1 (Pra-Observasi).
-       - Ketika tab Observasi Kelas aktif -> Cetak/Pratinjau langsung menyasar Lembar 2 (Observasi Kelas).
-       - Ketika tab Pasca-Observasi aktif -> Cetak/Pratinjau langsung menyasar Lembar 3 (Pasca-Observasi & Triangulasi).
-    3. Area Terpisah yang Dapat Dicetak (#printable-supervision-area):
-       - Berisi Identitas Pelaksanaan Supervisi (Secara otomatis terhubung ke seluruh form).
-       - Mengakomodasi bagian aktif yang dipilih (Pra-Observasi, Observasi Kelas, Pasca-Observasi, atau Seluruh Lembar).
-       - Diakhiri dengan Blok Tanda Tangan Resmi (Guru & Supervisor/Kepala Sekolah).
-    4. Tab Content: Overview & Regulasi, Pra-Observasi, Observasi Kelas, Pasca & Triangulasi, Implikasi Manajerial.
--->
-
-<!-- Visualization & Content Choices:
-    - Profil Lulusan (8 Dimensi): Visualisasi Bar Chart (Chart.js Canvas) untuk menampilkan distribusi indikator penguatan karakter murid.
-    - Pra-Observasi Breakdown: Polar Area Chart (Chart.js Canvas) untuk memperlihatkan capaian per kelompok aspek perencanaan.
-    - Dynamic Preview Engine: Merender pratinjau dokumen sesuai tab aktif dan sinkron dengan perintah cetak browser.
-    - Terkonfirmasi: TIDAK menggunakan SVG & TIDAK menggunakan Mermaid JS. Seluruh grafik menggunakan Canvas via Chart.js.
--->
-
-<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <!-- Top Navigation & Header Bar -->
     <header class="bg-emerald-800 text-white shadow-md no-print">
@@ -148,10 +145,10 @@
         </div>
     </nav>
 
-    <!-- MAIN PRINTABLE CONTAINER (Starts strictly from Identity section to Signatures) -->
+    <!-- MAIN PRINTABLE CONTAINER -->
     <div id="printable-supervision-area" class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex-grow w-full">
         
-        <!-- SECTION 0: IDENTITAS PELAKSANAAN SUPERVISI (Selalu menjadi bagian awal cetak) -->
+        <!-- SECTION 0: IDENTITAS PELAKSANAAN SUPERVISI -->
         <section id="identity-section" class="bg-white border border-slate-300 rounded-xl p-5 mb-6 shadow-sm">
             <div class="border-b-2 border-emerald-700 pb-3 mb-4 flex justify-between items-center flex-wrap gap-2">
                 <div>
@@ -163,7 +160,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama Satuan Pendidikan:</label>
                     <input type="text" id="schoolName" value="SMP Negeri 1 Pembelajaran" oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500 font-semibold bg-white">
@@ -173,12 +170,20 @@
                     <input type="text" id="teacherName" value="Yani Sopiani, S.Pd." oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500 font-semibold bg-white">
                 </div>
                 <div>
+                    <label class="block font-bold text-slate-700 mb-1">NIP / NUPTK Guru:</label>
+                    <input type="text" id="teacherNip" value="19850315 201001 1 012" oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500 font-semibold bg-white" placeholder="Masukkan NIP/NUPTK Guru">
+                </div>
+                <div>
                     <label class="block font-bold text-slate-700 mb-1">Mata Pelajaran & Kelas:</label>
                     <input type="text" id="subjectClass" value="IPA / VIII (Fase D)" oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500 font-semibold bg-white">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama Supervisor:</label>
                     <input type="text" id="supervisorName" value="Ida Faridlah, M.Ag." oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500 font-semibold bg-white">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">NIP / NUPTK Supervisor:</label>
+                    <input type="text" id="supervisorNip" value="19721114 199802 2 002" oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded focus:ring-1 focus:ring-emerald-500 font-semibold bg-white" placeholder="Masukkan NIP/NUPTK Supervisor">
                 </div>
             </div>
         </section>
@@ -191,7 +196,6 @@
                     Bagian ini menyajikan landasan filosofis, kerangka regulasi Kemendikdasmen terbaru, serta penataan kompetensi holistik bagi murid SMP. Supervisi akademik ditransformasikan dari kontrol administratif menjadi pendampingan kolaboratif berkesinambungan untuk menciptakan pengalaman belajar yang berkesadaran, bermakna, dan menggembirakan.
                 </p>
 
-                <!-- Dynamic Grid for Deep Learning Pillars -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
                     <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg">
                         <div class="flex items-center space-x-2 text-emerald-800 font-bold mb-1">
@@ -216,12 +220,11 @@
                     </div>
                 </div>
 
-                <!-- 3 Learning Process Flow & 3 Teacher Roles -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
                         <h4 class="font-bold text-slate-700 text-sm mb-2 flex items-center gap-1">🔄 3 Alur Pengalaman Belajar (Permendikdasmen 1/2026)</h4>
                         <ul class="text-xs space-y-2 text-slate-600">
-                            <li class="bg-white p-2 rounded border border-slate-200"><strong>1. Memahami:</strong> Mengonstruksi pengetahuan mendalam & pemaknaan konsep dasar (mencegah *surface learning*).</li>
+                            <li class="bg-white p-2 rounded border border-slate-200"><strong>1. Memahami:</strong> Mengonstruksi pengetahuan mendalam & pemaknaan konsep dasar (mencegah <em>surface learning</em>).</li>
                             <li class="bg-white p-2 rounded border border-slate-200"><strong>2. Mengaplikasi:</strong> Menerapkan pengetahuan pada masalah nyata, proyek kontekstual, atau penugasan praktis.</li>
                             <li class="bg-white p-2 rounded border border-slate-200"><strong>3. Merefleksi:</strong> Mengevaluasi proses dan pencapaian belajar sendiri untuk merencanakan langkah perbaikan.</li>
                         </ul>
@@ -230,14 +233,13 @@
                         <h4 class="font-bold text-slate-700 text-sm mb-2 flex items-center gap-1">👨‍🏫 3 Peran Utama Pendidik (Permendikdasmen 1/2026)</h4>
                         <ul class="text-xs space-y-2 text-slate-600">
                             <li class="bg-white p-2 rounded border border-slate-200"><strong>1. Keteladanan:</strong> Menampilkan perilaku mulia, empati, keadaban, dan budaya saling memuliakan.</li>
-                            <li class="bg-white p-2 rounded border border-slate-200"><strong>2. Pendampingan:</strong> Memberikan bimbingan terarah (*scaffolding*) sesuai keragaman tingkat kesiapan murid.</li>
+                            <li class="bg-white p-2 rounded border border-slate-200"><strong>2. Pendampingan:</strong> Memberikan bimbingan terarah (<em>scaffolding</em>) sesuai keragaman tingkat kesiapan murid.</li>
                             <li class="bg-white p-2 rounded border border-slate-200"><strong>3. Fasilitasi:</strong> Menyediakan sarana, pilihan strategi, dan ruang ekspresi eksploratif bagi murid.</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Visualization of 8 Profil Lulusan Dimensions -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
                     <div>
@@ -250,7 +252,6 @@
                     <div class="text-xs text-slate-500 mt-2 text-center italic">Grafik memvisualisasikan 8 dimensi utama penguatan karakter & kompetensi holistik murid.</div>
                 </div>
 
-                <!-- Landasan Regulasi Table -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <h3 class="text-base font-bold text-slate-800 mb-1">Matriks Landasan Regulasi Terkini</h3>
                     <p class="text-xs text-slate-500 mb-4">Acuan yuridis formal pelaksanaan supervisi akademik bagi guru SMP.</p>
@@ -282,7 +283,7 @@
                                 <tr>
                                     <td class="p-2 font-medium text-emerald-800">Permendikdasmen No. 1/2026</td>
                                     <td class="p-2">Standar Proses</td>
-                                    <td class="p-2">Prinsip *Mindful, Meaningful, Joyful* & Asesmen Multisumber.</td>
+                                    <td class="p-2">Prinsip <em>Mindful, Meaningful, Joyful</em> & Asesmen Multisumber.</td>
                                 </tr>
                                 <tr>
                                     <td class="p-2 font-medium text-emerald-800">Permendikdasmen No. 6/2026</td>
@@ -332,9 +333,9 @@
                         <thead>
                             <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
                                 <th class="p-3 w-12 text-center">No</th>
-                                <th class="p-3">Aspek Penilaian Perencanaan</th>
-                                <th class="p-3">Indikator Keselarasan Regulasi & Pedagogi Mendalam</th>
-                                <th class="p-3 w-24 text-center">Skor (1-4)</th>
+                                <th class="p-3 w-1/4">Aspek Penilaian Perencanaan</th>
+                                <th class="p-3 w-1/3">Indikator Keselarasan Regulasi & Pedagogi Mendalam</th>
+                                <th class="p-3 w-20 text-center">Skor (1-4)</th>
                                 <th class="p-3">Catatan Penelaahan Dokumen & Diskusi</th>
                             </tr>
                         </thead>
@@ -352,7 +353,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="TP sudah selaras dengan CP Fase D IPA." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">TP sudah selaras dengan CP Fase D IPA.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">2</td>
@@ -363,7 +364,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Menargetkan Penalaran Kritis dan Kolaborasi." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Menargetkan Penalaran Kritis dan Kolaborasi.</textarea></td>
                             </tr>
 
                             <!-- Group II -->
@@ -379,7 +380,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Ada teknik STOP dan pertanyaan pemantik orientasi." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Ada teknik STOP dan pertanyaan pemantik orientasi.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">4</td>
@@ -390,7 +391,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Studi kasus pencemaran sungai lokal di lingkungan murid." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Studi kasus pencemaran sungai lokal di lingkungan murid.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">5</td>
@@ -401,7 +402,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Gim simulasi kelompok interaktif." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Gim simulasi kelompok interaktif.</textarea></td>
                             </tr>
 
                             <!-- Group III -->
@@ -417,7 +418,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Diskusi analisis peta konsep kelompok." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Diskusi analisis peta konsep kelompok.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">7</td>
@@ -428,7 +429,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Perancangan solusi miniatur penjernih air." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Perancangan solusi miniatur penjernih air.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">8</td>
@@ -439,7 +440,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Lembar refleksi diri perlu diperjelas rubriknya." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Lembar refleksi diri perlu diperjelas rubriknya.</textarea></td>
                             </tr>
 
                             <!-- Group IV -->
@@ -455,7 +456,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Panduan fasilitasi kelompok tertata baik." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Panduan fasilitasi kelompok tertata baik.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">10</td>
@@ -466,7 +467,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Diferensiasi produk berdasarkan minat kelompok." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Diferensiasi produk berdasarkan minat kelompok.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">11</td>
@@ -477,7 +478,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Kesepakatan kelas ramah anak dicantumkan di awal." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Kesepakatan kelas ramah anak dicantumkan di awal.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">12</td>
@@ -488,7 +489,7 @@
                                         <option value="0">-</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Menggunakan platform kuis interaktif." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Menggunakan platform kuis interaktif.</textarea></td>
                             </tr>
                         </tbody>
                     </table>
@@ -543,9 +544,9 @@
                     <table class="w-full text-left text-xs text-slate-700 border-collapse">
                         <thead>
                             <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
-                                <th class="p-3">Sub-Fokus Pengamatan</th>
-                                <th class="p-3">Indikator Perilaku Teramati (Pendidik & Murid)</th>
-                                <th class="p-3 w-28 text-center">Terlaksana?</th>
+                                <th class="p-3 w-1/4">Sub-Fokus Pengamatan</th>
+                                <th class="p-3 w-1/3">Indikator Perilaku Teramati (Pendidik & Murid)</th>
+                                <th class="p-3 w-24 text-center">Terlaksana?</th>
                                 <th class="p-3">Catatan Bukti Teramati di Kelas (Deskriptif-Kualitatif)</th>
                             </tr>
                         </thead>
@@ -563,7 +564,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Guru menyampaikan alasan mengapa analisis kualitas air penting untuk kesehatan keluarga." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Guru menyampaikan alasan mengapa analisis kualitas air penting untuk kesehatan keluarga.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 font-semibold">2. Kesiapan Mental & Kehadiran Utuh</td>
@@ -574,7 +575,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Melakukan latihan pernapasan sejenak (Mindful Breathing) selama 2 menit." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Melakukan latihan pernapasan sejenak (Mindful Breathing) selama 2 menit.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 font-semibold">3. Aktivasi Pengaturan Diri</td>
@@ -585,7 +586,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Murid menyusun target kelompok secara mandiri di lembar kerja." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Murid menyusun target kelompok secara mandiri di lembar kerja.</textarea></td>
                             </tr>
 
                             <!-- Section B -->
@@ -601,7 +602,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Menayangkan video kondisi selokan di sekitar pemukiman sekolah." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Menayangkan video kondisi selokan di sekitar pemukiman sekolah.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 font-semibold">5. Pengalaman Memahami</td>
@@ -612,7 +613,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Diskusi sengit mengenai dampak limbah rumah tangga terhadap ekosistem." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Diskusi sengit mengenai dampak limbah rumah tangga terhadap ekosistem.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 font-semibold">6. Pengalaman Mengaplikasi</td>
@@ -623,7 +624,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Merancang skema alat penyaring air sederhana dalam kelompok." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Merancang skema alat penyaring air sederhana dalam kelompok.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 font-semibold">7. Transdisipliner & Nilai Agama</td>
@@ -634,7 +635,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Mengaitkan kebersihan lingkungan dengan amanah menjaga ciptaan Tuhan." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Mengaitkan kebersihan lingkungan dengan amanah menjaga ciptaan Tuhan.</textarea></td>
                             </tr>
 
                             <!-- Section C -->
@@ -650,7 +651,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Suasana inklusif, tidak ada ejekan saat murid salah menjawab." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Suasana inklusif, tidak ada ejekan saat murid salah menjawab.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 font-semibold">9. Interaksi Positif & Kolaboratif</td>
@@ -661,7 +662,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Kerja kelompok berjalan aktif dan antusias." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Kerja kelompok berjalan aktif dan antusias.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 font-semibold">10. Apresiasi & Umpan Balik</td>
@@ -672,7 +673,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Guru memuji dinamika diskusi kelompok yang aktif berargumen." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Guru memuji dinamika diskusi kelompok yang aktif berargumen.</textarea></td>
                             </tr>
 
                             <!-- Section D -->
@@ -688,7 +689,7 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Guru mendatangi meja kelompok dan mendengarkan keluhan murid dengan empati." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Guru mendatangi meja kelompok dan mendengarkan keluhan murid dengan empati.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 font-semibold">12. Pendampingan & Fasilitasi</td>
@@ -699,10 +700,10 @@
                                         <option value="Tidak">Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Memberikan petunjuk tambahan bagi kelompok yang kesulitan merancang skema." class="w-full p-1.5 border border-slate-200 rounded"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="1">Memberikan petunjuk tambahan bagi kelompok yang kesulitan merancang skema.</textarea></td>
                             </tr>
                             <tr>
-                                <td class="p-3 font-semibold">13. Pengalaman Merefleksi</td>
+                                <td class="p-3 font-semibold">13. Pengalaman MerefleKSI</td>
                                 <td class="p-3">Guru memberi ruang bagi murid mengevaluasi strategi belajarnya, capaian pribadi, dan perbaikan (Permendikdasmen 1/2026).</td>
                                 <td class="p-3 text-center">
                                     <select onchange="updateObsStats()" class="obs-status w-full p-1.5 border border-slate-300 rounded font-bold bg-white text-amber-700">
@@ -710,7 +711,7 @@
                                         <option value="Tidak" selected>Tidak</option>
                                     </select>
                                 </td>
-                                <td class="p-3"><input type="text" value="Waktu sesi refleksi tergesa-gesa karena alokasi jam habis." class="w-full p-1.5 border border-slate-200 rounded text-amber-900"></td>
+                                <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded text-amber-900 auto-expand" rows="1">Waktu sesi refleksi tergesa-gesa karena alokasi jam habis.</textarea></td>
                             </tr>
                         </tbody>
                     </table>
@@ -726,7 +727,6 @@
                     Sesuai Pasal 15, 16, & 19 Permendikdasmen Nomor 1 Tahun 2026, Penilaian Proses Pembelajaran dilaksanakan melalui ulasan multisumber (Multi-Source Feedback) secara apresiatif dan reflektif.
                 </p>
 
-                <!-- Multi-source Triangulation Grid -->
                 <div class="border border-slate-200 rounded-lg overflow-hidden mb-6">
                     <div class="bg-slate-100 p-3 font-bold text-slate-700 text-xs">📌 Matriks Triangulasi Umpan Balik Multisumber</div>
                     <div class="overflow-x-auto">
@@ -743,25 +743,25 @@
                                 <tr>
                                     <td class="p-3 font-semibold text-emerald-800">1. Refleksi Diri Guru</td>
                                     <td class="p-3">Form Refleksi Mandiri</td>
-                                    <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded" rows="2">Merasa optimal pada Meaningful Learning, namun tergesa-gesa di alur Merefleksi karena alokasi waktu terbatas.</textarea></td>
+                                    <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="2">Merasa optimal pada Meaningful Learning, namun tergesa-gesa di alur Merefleksi karena alokasi waktu terbatas.</textarea></td>
                                     <td class="p-3 text-slate-600">Perlunya penataan manajemen waktu dan lembar refleksi praktis.</td>
                                 </tr>
                                 <tr>
                                     <td class="p-3 font-semibold text-emerald-800">2. Umpan Balik Murid</td>
                                     <td class="p-3">Form Refleksi Ringkas Murid</td>
-                                    <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded" rows="2">Murid sangat menyukai kerja kelompok interaktif (Joyful), namun butuh kejelasan petunjuk proyek aplikasi.</textarea></td>
+                                    <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="2">Murid sangat menyukai kerja kelompok interaktif (Joyful), namun butuh kejelasan petunjuk proyek aplikasi.</textarea></td>
                                     <td class="p-3 text-slate-600">Penyederhanaan instruksi penugasan kelompok.</td>
                                 </tr>
                                 <tr>
                                     <td class="p-3 font-semibold text-emerald-800">3. Teman Sejawat</td>
                                     <td class="p-3">Observasi Kolaboratif Sejawat</td>
-                                    <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded" rows="2">Penggunaan media kontekstual sangat baik. Efisiensi transisi kelompok perlu ditata kembali.</textarea></td>
+                                    <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="2">Penggunaan media kontekstual sangat baik. Efisiensi transisi kelompok perlu ditata kembali.</textarea></td>
                                     <td class="p-3 text-slate-600">Manajemen transisi alur aktivitas kelas.</td>
                                 </tr>
                                 <tr>
                                     <td class="p-3 font-semibold text-emerald-800">4. Supervisor</td>
                                     <td class="p-3">Catatan Observasi Kelas</td>
-                                    <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded" rows="2">Budaya kelas aman & memuliakan murid terwujud sangat baik (Permendikdasmen 6/2026). Penguatan rubrik 8 Profil Lulusan perlu ditingkatkan.</textarea></td>
+                                    <td class="p-3"><textarea class="w-full p-1.5 border border-slate-200 rounded auto-expand" rows="2">Budaya kelas aman & memuliakan murid terwujud sangat baik (Permendikdasmen 6/2026). Penguatan rubrik 8 Profil Lulusan perlu ditingkatkan.</textarea></td>
                                     <td class="p-3 text-slate-600">Pembimbingan asesmen 8 Dimensi Profil Lulusan.</td>
                                 </tr>
                             </tbody>
@@ -769,19 +769,17 @@
                     </div>
                 </div>
 
-                <!-- Analysis of Strengths & Development Needs -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg">
                         <h4 class="font-bold text-emerald-900 text-sm mb-2 flex items-center gap-1">🌟 Praktik Baik yang Dipertahankan</h4>
-                        <textarea id="strengthsText" class="w-full p-2 text-xs border border-emerald-300 rounded bg-white text-slate-700" rows="3">Pendidik secara konsisten menunjukkan sikap keteladanan dan memperlakukan murid secara bermartabat, berhasil menciptakan iklim kelas yang aman, inklusif, dan ramah sesuai Permendikdasmen No. 6/2026. Pertautan konsep materi dengan isu kontekstual sehari-hari memenuhi kriteria Meaningful Learning secara optimal.</textarea>
+                        <textarea id="strengthsText" class="w-full p-2 text-xs border border-emerald-300 rounded bg-white text-slate-700 auto-expand" rows="3">Pendidik secara konsisten menunjukkan sikap keteladanan dan memperlakukan murid secara bermartabat, berhasil menciptakan iklim kelas yang aman, inklusif, dan ramah sesuai Permendikdasmen No. 6/2026. Pertautan konsep materi dengan isu kontekstual sehari-hari memenuhi kriteria Meaningful Learning secara optimal.</textarea>
                     </div>
                     <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg">
                         <h4 class="font-bold text-amber-900 text-sm mb-2 flex items-center gap-1">🎯 Area yang Memerlukan Peningkatan</h4>
-                        <textarea id="developmentText" class="w-full p-2 text-xs border border-amber-300 rounded bg-white text-slate-700" rows="3">Alur Merefleksi pada akhir pembelajaran memerlukan struktur panduan yang lebih jelas agar murid mampu mengevaluasi pencapaian secara mandiri. Pendidik perlu menajamkan rubrik formatif 8 Dimensi Profil Lulusan khususnya aspek Komunikasi dan Kesehatan emosional.</textarea>
+                        <textarea id="developmentText" class="w-full p-2 text-xs border border-amber-300 rounded bg-white text-slate-700 auto-expand" rows="3">Alur Merefleksi pada akhir pembelajaran memerlukan struktur panduan yang lebih jelas agar murid mampu mengevaluasi pencapaian secara mandiri. Pendidik perlu menajamkan rubrik formatif 8 Dimensi Profil Lulusan khususnya aspek Komunikasi dan Kesehatan emosional.</textarea>
                     </div>
                 </div>
 
-                <!-- Action Plan (RTL) Generator -->
                 <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
                     <div class="flex justify-between items-center mb-3">
                         <h4 class="font-bold text-slate-700 text-sm">📋 Rencana Tindak Lanjut (RTL) Pengembangan Keprofesian Pendidik</h4>
@@ -803,19 +801,19 @@
                             </thead>
                             <tbody id="rtlTableBody" class="divide-y divide-slate-200 bg-white">
                                 <tr>
-                                    <td class="p-2"><input type="text" value="Menyusun panduan instrumen refleksi murid untuk alur Merefleksi." class="w-full p-1 border rounded"></td>
-                                    <td class="p-2"><input type="text" value="Murid terbiasa mengisi jurnal refleksi mandiri di akhir sesi." class="w-full p-1 border rounded"></td>
-                                    <td class="p-2"><input type="text" value="2 Minggu" class="w-full p-1 border rounded"></td>
-                                    <td class="p-2"><input type="text" value="Tim MGMP Sekolah" class="w-full p-1 border rounded"></td>
-                                    <td class="p-2"><input type="text" value="Verifikasi dokumen jurnal refleksi murid oleh supervisor." class="w-full p-1 border rounded"></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Menyusun panduan instrumen refleksi murid untuk alur Merefleksi.</textarea></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Murid terbiasa mengisi jurnal refleksi mandiri di akhir sesi.</textarea></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">2 Minggu</textarea></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Tim MGMP Sekolah</textarea></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Verifikasi dokumen jurnal refleksi murid oleh supervisor.</textarea></td>
                                     <td class="p-2 text-center no-print"><button onclick="deleteRtlRow(this)" class="text-red-500 hover:text-red-700 font-bold">✕</button></td>
                                 </tr>
                                 <tr>
-                                    <td class="p-2"><input type="text" value="Mengikuti pelatihan mandiri asesmen 8 Profil Lulusan." class="w-full p-1 border rounded"></td>
-                                    <td class="p-2"><input type="text" value="Terciptanya rubrik penilaian proses dimensi Komunikasi." class="w-full p-1 border rounded"></td>
-                                    <td class="p-2"><input type="text" value="1 Bulan" class="w-full p-1 border rounded"></td>
-                                    <td class="p-2"><input type="text" value="Platform Merdeka Mengajar" class="w-full p-1 border rounded"></td>
-                                    <td class="p-2"><input type="text" value="Review draft rubrik oleh Kepala Sekolah." class="w-full p-1 border rounded"></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Mengikuti pelatihan mandiri asesmen 8 Profil Lulusan.</textarea></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Terciptanya rubrik penilaian proses dimensi Komunikasi.</textarea></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">1 Bulan</textarea></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Platform Merdeka Mengajar</textarea></td>
+                                    <td class="p-2"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Review draft rubrik oleh Kepala Sekolah.</textarea></td>
                                     <td class="p-2 text-center no-print"><button onclick="deleteRtlRow(this)" class="text-red-500 hover:text-red-700 font-bold">✕</button></td>
                                 </tr>
                             </tbody>
@@ -830,22 +828,20 @@
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <h2 class="text-xl font-bold text-emerald-800 mb-2">4. Analisis Implikasi Strategis & Rekomendasi Manajerial Satuan Pendidikan</h2>
                 <p class="text-xs text-slate-600 mb-6 leading-relaxed">
-                    Penerapan supervisi berbasis Pembelajaran Mendalam (*Deep Learning*) menuntut kepemimpinan sekolah untuk bergeser dari sekadar verifikasi administratif menjadi fasilitator pembentukan budaya mutu pedagogis yang berkelanjutan.
+                    Penerapan supervisi berbasis Pembelajaran Mendalam (<em>Deep Learning</em>) menuntut kepemimpinan sekolah untuk bergeser dari sekadar verifikasi administratif menjadi fasilitator pembentukan budaya mutu pedagogis yang berkelanjutan.
                 </p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Step 1 -->
                     <div class="border border-emerald-200 bg-emerald-50/50 p-5 rounded-xl space-y-2">
                         <div class="flex items-center space-x-2 text-emerald-800 font-bold">
                             <span class="bg-emerald-700 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
                             <h3>Reorientasi Tim Supervisi Akademik</h3>
                         </div>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Membentuk Tim Supervisi yang melibatkan Guru Senior & Guru Penggerak, membekali mereka dengan keterampilan fasilitasi *coaching* dan dialog reflektif yang tidak menghakimi. Menyelaraskan pemahaman indikator *Mindful, Meaningful, Joyful* secara berkala.
+                            Membentuk Tim Supervisi yang melibatkan Guru Senior & Guru Penggerak, membekali mereka dengan keterampilan fasilitasi <em>coaching</em> dan dialog reflektif yang tidak menghakimi. Menyelaraskan pemahaman indikator <em>Mindful, Meaningful, Joyful</em> secara berkala.
                         </p>
                     </div>
 
-                    <!-- Step 2 -->
                     <div class="border border-sky-200 bg-sky-50/50 p-5 rounded-xl space-y-2">
                         <div class="flex items-center space-x-2 text-sky-800 font-bold">
                             <span class="bg-sky-700 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
@@ -856,7 +852,6 @@
                         </p>
                     </div>
 
-                    <!-- Step 3 -->
                     <div class="border border-indigo-200 bg-indigo-50/50 p-5 rounded-xl space-y-2">
                         <div class="flex items-center space-x-2 text-indigo-800 font-bold">
                             <span class="bg-indigo-700 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
@@ -867,21 +862,20 @@
                         </p>
                     </div>
 
-                    <!-- Step 4 -->
                     <div class="border border-amber-200 bg-amber-50/50 p-5 rounded-xl space-y-2">
                         <div class="flex items-center space-x-2 text-amber-800 font-bold">
                             <span class="bg-amber-700 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">4</span>
                             <h3>Tata Kelola Iklim Sekolah Aman (TPPK)</h3>
                         </div>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Menhubungkan penilaian iklim kelas supervisi dengan kerja Tim Pencegahan dan Penanganan Kekerasan (TPPK) sekolah sesuai Permendikdasmen No. 6/2026. Memastikan seluruh lingkungan kelas kondusif bagi *well-being* fisik dan mental murid.
+                            Menhubungkan penilaian iklim kelas supervisi dengan kerja Tim Pencegahan dan Penanganan Kekerasan (TPPK) sekolah sesuai Permendikdasmen No. 6/2026. Memastikan seluruh lingkungan kelas kondusif bagi <em>well-being</em> fisik dan mental murid.
                         </p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION FINAL: SIGNATURE BLOCK (Selalu berada di bagian penutup cetak dokumen) -->
+        <!-- SECTION FINAL: SIGNATURE BLOCK -->
         <section id="signatures-section" class="bg-white border border-slate-300 rounded-xl p-6 mt-6 shadow-sm">
             <h4 class="font-bold text-slate-700 text-xs mb-4 uppercase border-b border-slate-200 pb-2">Pengesahan Hasil Dokumen Supervisi Akademik</h4>
             <div class="grid grid-cols-2 gap-8 pt-2">
@@ -891,8 +885,8 @@
                         <p class="text-slate-400 text-[10px]">( Tanda Tangan & Nama Terang )</p>
                     </div>
                     <div>
-                        <p id="sigTeacherName" class="font-bold underline text-slate-900">Budi Santoso, S.Pd.</p>
-                        <p class="text-slate-600">NIP. 19850315 201001 1 012</p>
+                        <p id="sigTeacherName" class="font-bold underline text-slate-900">Yani Sopiani, S.Pd.</p>
+                        <p id="sigTeacherNip" class="text-slate-600">NIP. 19850315 201001 1 012</p>
                     </div>
                 </div>
                 <div class="text-center text-xs space-y-12">
@@ -901,8 +895,8 @@
                         <p class="text-slate-400 text-[10px]">( Tanda Tangan & Nama Terang )</p>
                     </div>
                     <div>
-                        <p id="sigSupervisorName" class="font-bold underline text-slate-900">Dr. Hj. Siti Aminah, M.Pd.</p>
-                        <p class="text-slate-600">NIP. 19780520 200312 2 005</p>
+                        <p id="sigSupervisorName" class="font-bold underline text-slate-900">Ida Faridlah, M.Ag.</p>
+                        <p id="sigSupervisorNip" class="text-slate-600">NIP. 19780520 200312 2 005</p>
                     </div>
                 </div>
             </div>
@@ -913,7 +907,6 @@
     <!-- MODAL PRATINJAU DOKUMEN CETAK -->
     <div id="previewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-            <!-- Modal Header -->
             <div class="bg-emerald-800 text-white p-4 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <span class="text-2xl">📑</span>
@@ -925,7 +918,6 @@
                 <button onclick="closePreviewModal()" class="text-white hover:bg-emerald-700 p-1 rounded-lg text-xl font-bold">✕</button>
             </div>
 
-            <!-- Modal Options & Scope Selection -->
             <div class="bg-slate-100 p-3 border-b border-slate-200 flex flex-wrap gap-2 items-center text-xs">
                 <span class="font-bold text-slate-700">Cakupan Lembar Cetak:</span>
                 <button onclick="setPrintScope('all')" id="scope-btn-all" class="px-3 py-1 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-200 font-semibold">
@@ -942,12 +934,9 @@
                 </button>
             </div>
 
-            <!-- Modal Body (Dynamic Preview Render Area) -->
             <div id="modalPreviewBody" class="p-6 overflow-y-auto flex-grow bg-slate-50 text-xs space-y-4">
-                <!-- Dynamic content generated via JavaScript -->
             </div>
 
-            <!-- Modal Footer Controls -->
             <div class="bg-white border-t border-slate-200 p-4 flex justify-between items-center">
                 <span class="text-xs text-slate-500">Area Cetak: <strong>Identitas Pelaksanaan ➔ Tanda Tangan</strong></span>
                 <div class="flex space-x-2">
@@ -969,10 +958,9 @@
 
     <!-- JavaScript Logic -->
     <script>
-        // Global Variables
         let profilChartInstance = null;
         let praChartInstance = null;
-        let currentPrintScope = 'all'; // 'all', 'pra', 'obs', 'pasca'
+        let currentPrintScope = 'all';
         let currentActiveTab = 'tab-overview';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -983,7 +971,6 @@
             updateIdentities();
         });
 
-        // Tab Switching Logic with Auto-Sync for Print Scope
         function switchTab(tabId) {
             currentActiveTab = tabId;
 
@@ -993,7 +980,6 @@
             document.getElementById(tabId).classList.remove('hidden');
             document.getElementById('btn-' + tabId).classList.add('active');
 
-            // Automatically set scope based on active tab
             if (tabId === 'tab-pra') {
                 currentPrintScope = 'pra';
             } else if (tabId === 'tab-obs') {
@@ -1004,7 +990,6 @@
                 currentPrintScope = 'all';
             }
 
-            // Re-render chart if active tab contains responsive charts
             if (tabId === 'tab-overview' && profilChartInstance) {
                 profilChartInstance.resize();
             }
@@ -1013,15 +998,19 @@
             }
         }
 
-        // Identity Synchronizer
         function updateIdentities() {
             const teacher = document.getElementById('teacherName').value;
+            const teacherNip = document.getElementById('teacherNip').value;
             const supervisor = document.getElementById('supervisorName').value;
+            const supervisorNip = document.getElementById('supervisorNip').value;
+
             document.getElementById('sigTeacherName').innerText = teacher || '...........................';
+            document.getElementById('sigTeacherNip').innerText = teacherNip ? `NIP/NUPTK. ${teacherNip}` : 'NIP/NUPTK. ...........................';
+            
             document.getElementById('sigSupervisorName').innerText = supervisor || '...........................';
+            document.getElementById('sigSupervisorNip').innerText = supervisorNip ? `NIP/NUPTK. ${supervisorNip}` : 'NIP/NUPTK. ...........................';
         }
 
-        // Chart 1: 8 Profil Lulusan Dimensions
         function initProfilChart() {
             const ctx = document.getElementById('profilLulusanChart').getContext('2d');
             profilChartInstance = new Chart(ctx, {
@@ -1062,7 +1051,6 @@
             });
         }
 
-        // Calculate Scores for Pra-Observasi
         function calculatePraScore() {
             const selects = document.querySelectorAll('.pra-score');
             let total = 0;
@@ -1090,7 +1078,6 @@
             document.getElementById('praScoreTotal').innerText = `${total} / ${maxTotal}`;
             document.getElementById('praScorePercentage').innerText = `(${percentage}% - ${statusText})`;
 
-            // Update Pra Polar Chart
             if (praChartInstance) {
                 const maxGroups = [8, 12, 12, 16];
                 const groupPercents = groupScores.map((score, i) => Math.round((score / maxGroups[i]) * 100));
@@ -1099,7 +1086,6 @@
             }
         }
 
-        // Chart 2: Pra-Observasi Breakdown
         function initPraChart() {
             const ctx = document.getElementById('praScoreChart').getContext('2d');
             praChartInstance = new Chart(ctx, {
@@ -1134,7 +1120,6 @@
             });
         }
 
-        // Update Observasi Stats
         function updateObsStats() {
             const obsSelects = document.querySelectorAll('.obs-status');
             let yaCount = 0;
@@ -1148,16 +1133,15 @@
             document.getElementById('obsTerlaksanaPercent').innerText = `(${percent}% Teramati)`;
         }
 
-        // Dynamic Action Plan (RTL) Row Adder & Deleter
         function addRtlRow() {
             const tbody = document.getElementById('rtlTableBody');
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="p-2"><input type="text" placeholder="Rencana aksi baru..." class="w-full p-1 border rounded"></td>
-                <td class="p-2"><input type="text" placeholder="Target..." class="w-full p-1 border rounded"></td>
-                <td class="p-2"><input type="text" placeholder="Waktu..." class="w-full p-1 border rounded"></td>
-                <td class="p-2"><input type="text" placeholder="Pendamping..." class="w-full p-1 border rounded"></td>
-                <td class="p-2"><input type="text" placeholder="Evaluasi..." class="w-full p-1 border rounded"></td>
+                <td class="p-2"><textarea placeholder="Rencana aksi baru..." class="w-full p-1 border rounded auto-expand" rows="1"></textarea></td>
+                <td class="p-2"><textarea placeholder="Target..." class="w-full p-1 border rounded auto-expand" rows="1"></textarea></td>
+                <td class="p-2"><textarea placeholder="Waktu..." class="w-full p-1 border rounded auto-expand" rows="1"></textarea></td>
+                <td class="p-2"><textarea placeholder="Pendamping..." class="w-full p-1 border rounded auto-expand" rows="1"></textarea></td>
+                <td class="p-2"><textarea placeholder="Evaluasi..." class="w-full p-1 border rounded auto-expand" rows="1"></textarea></td>
                 <td class="p-2 text-center no-print"><button onclick="deleteRtlRow(this)" class="text-red-500 hover:text-red-700 font-bold">✕</button></td>
             `;
             tbody.appendChild(tr);
@@ -1167,8 +1151,6 @@
             const row = btn.closest('tr');
             row.remove();
         }
-
-        // --- PREVIEW & PRINT ENGINE LOGIC ---
 
         function updateScopeButtonsUI() {
             ['all', 'pra', 'obs', 'pasca'].forEach(s => {
@@ -1184,7 +1166,6 @@
         }
 
         function openPreviewModal() {
-            // Auto-sync scope to currently active tab when opening preview
             if (currentActiveTab === 'tab-pra') currentPrintScope = 'pra';
             else if (currentActiveTab === 'tab-obs') currentPrintScope = 'obs';
             else if (currentActiveTab === 'tab-pasca') currentPrintScope = 'pasca';
@@ -1207,17 +1188,20 @@
         function renderModalPreviewContent() {
             const container = document.getElementById('modalPreviewBody');
             
-            // Gather Identity Info
             const school = document.getElementById('schoolName').value;
             const teacher = document.getElementById('teacherName').value;
+            const teacherNip = document.getElementById('teacherNip').value;
             const subjClass = document.getElementById('subjectClass').value;
             const supervisor = document.getElementById('supervisorName').value;
+            const supervisorNip = document.getElementById('supervisorNip').value;
 
             let html = `
                 <div class="bg-white p-4 border border-slate-300 rounded-lg space-y-4">
                     <div class="border-b-2 border-emerald-800 pb-2">
                         <h4 class="font-bold text-emerald-900 text-sm uppercase">IDENTITAS HASIL SUPERVISI AKADEMIK</h4>
-                        <p class="text-[11px] text-slate-600">Sekolah: <strong>${school}</strong> | Guru: <strong>${teacher}</strong> | Mapel: <strong>${subjClass}</strong> | Supervisor: <strong>${supervisor}</strong></p>
+                        <p class="text-[11px] text-slate-600">Sekolah: <strong>${school}</strong> | Mapel: <strong>${subjClass}</strong></p>
+                        <p class="text-[11px] text-slate-600">Guru: <strong>${teacher}</strong> (NIP/NUPTK: ${teacherNip || '-'})</p>
+                        <p class="text-[11px] text-slate-600">Supervisor: <strong>${supervisor}</strong> (NIP/NUPTK: ${supervisorNip || '-'})</p>
                     </div>
             `;
 
@@ -1264,11 +1248,13 @@
                             <p class="font-semibold">Guru Disupervisi</p>
                             <br><br>
                             <p class="font-bold underline">${teacher || '...................'}</p>
+                            <p>NIP/NUPTK. ${teacherNip || '...................'}</p>
                         </div>
                         <div>
                             <p class="font-semibold">Supervisor / Kepala Sekolah</p>
                             <br><br>
                             <p class="font-bold underline">${supervisor || '...................'}</p>
+                            <p>NIP/NUPTK. ${supervisorNip || '...................'}</p>
                         </div>
                     </div>
                 </div>
@@ -1285,7 +1271,6 @@
         }
 
         function printSelectedArea() {
-            // Auto-sync scope to currently active tab if called directly
             if (currentActiveTab === 'tab-pra') currentPrintScope = 'pra';
             else if (currentActiveTab === 'tab-obs') currentPrintScope = 'obs';
             else if (currentActiveTab === 'tab-pasca') currentPrintScope = 'pasca';
@@ -1302,7 +1287,6 @@
             const tabPasca = document.getElementById('tab-pasca');
             const tabImplikasi = document.getElementById('tab-implikasi');
 
-            // Overview & Implikasi are non-supervision forms and excluded from print
             tabOverview.classList.add('hidden');
             tabImplikasi.classList.add('hidden');
 
@@ -1330,12 +1314,10 @@
             document.getElementById(currentActiveTab).classList.remove('hidden');
         }
 
-        // Browser Event Listener to automatically restore tabs after printing finishes
         window.onafterprint = function() {
             restoreTabVisibility();
         };
 
-        // Download Report Data as HTML File
         function downloadSupervisionReport() {
             const school = document.getElementById('schoolName').value || 'Sekolah';
             const teacher = document.getElementById('teacherName').value || 'Guru';
@@ -1352,7 +1334,6 @@
             document.body.removeChild(element);
         }
 
-        // Reset All Data Form
         function resetAllForms() {
             if (confirm("Apakah Anda yakin ingin mengosongkan/mereset seluruh data isian supervisi?")) {
                 document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
@@ -1361,11 +1342,9 @@
                 document.querySelectorAll('.obs-status').forEach(sel => sel.value = 'Tidak');
                 calculatePraScore();
                 updateObsStats();
+                updateIdentities();
             }
         }
     </script>
 </body>
 </html>
-```eot
-
-Aplikasi web instrumen supervisi akademik Pembelajaran Mendalam SMP ini telah tersinkronisasi sepenuhnya. Silakan coba kembali navigasi dan fitur cetaknya.
