@@ -114,9 +114,6 @@
                 <button onclick="printSelectedArea()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1">
                     🖨️ Cetak / Simpan PDF
                 </button>
-                <button onclick="downloadSupervisionReport()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1">
-                    📥 Unduh Laporan
-                </button>
                 <button onclick="resetAllForms()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1">
                     🔄 Reset Data
                 </button>
@@ -226,7 +223,7 @@
                         <ul class="text-xs space-y-2 text-slate-600">
                             <li class="bg-white p-2 rounded border border-slate-200"><strong>1. Memahami:</strong> Mengonstruksi pengetahuan mendalam & pemaknaan konsep dasar (mencegah <em>surface learning</em>).</li>
                             <li class="bg-white p-2 rounded border border-slate-200"><strong>2. Mengaplikasi:</strong> Menerapkan pengetahuan pada masalah nyata, proyek kontekstual, atau penugasan praktis.</li>
-                            <li class="bg-white p-2 rounded border border-slate-200"><strong>3. Merefleksi:</strong> Mengevaluasi proses dan pencapaian belajar sendiri untuk merencanakan langkah perbaikan.</li>
+                            <li class="bg-white p-2 rounded border border-slate-200"><strong>3. Merefleksi:</strong> Mengevaluasi proses dan pencapaian belajar sendiri untuk merencanaan langkah perbaikan.</li>
                         </ul>
                     </div>
                     <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
@@ -954,6 +951,7 @@
     <!-- Footer -->
     <footer class="bg-slate-800 text-slate-400 py-4 text-center text-xs border-t border-slate-700 no-print">
         <p>Sistem Supervisi Akademik Pembelajaran Mendalam SMP — Berdasarkan Regulasi Kemendikdasmen Terbaru</p>
+        <p class="text-slate-500 text-[11px] mt-1">Pengembang: <span class="text-slate-300 font-semibold">Ida Faridlah</span></p>
     </footer>
 
     <!-- JavaScript Logic -->
@@ -1317,22 +1315,6 @@
         window.onafterprint = function() {
             restoreTabVisibility();
         };
-
-        function downloadSupervisionReport() {
-            const school = document.getElementById('schoolName').value || 'Sekolah';
-            const teacher = document.getElementById('teacherName').value || 'Guru';
-            const dateStr = new Date().toISOString().slice(0, 10);
-            
-            const element = document.createElement('a');
-            const htmlContent = document.documentElement.outerHTML;
-            const file = new Blob([htmlContent], { type: 'text/html' });
-            
-            element.href = URL.createObjectURL(file);
-            element.download = `Laporan_Supervisi_${teacher.replace(/\s+/g, '_')}_${dateStr}.html`;
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-        }
 
         function resetAllForms() {
             if (confirm("Apakah Anda yakin ingin mengosongkan/mereset seluruh data isian supervisi?")) {
