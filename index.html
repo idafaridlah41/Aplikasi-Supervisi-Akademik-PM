@@ -8,6 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Library FileSaver & HTML-Docx CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+    <!-- Library HTML2PDF CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         .chart-container {
             position: relative;
@@ -35,11 +41,10 @@
             resize: none;
         }
         /* Cetak Laporan Penuh & Bersih */
-    /* Cetak Laporan Penuh & Bersih */
         @media print {
             @page {
                 size: A4;
-                margin: 10mm 12mm; /* Memperkecil margin kertas */
+                margin: 10mm 12mm;
             }
 
             .no-print {
@@ -53,15 +58,8 @@
                 margin: 0 !important;
             }
 
-            /* Memaksa setiap menu/navigasi utama dimulai di halaman baru */
             .tab-content {
                 display: block !important;
-                page-break-before: always !important;
-                break-before: page !important;
-            }
-
-            /* Halaman navigasi pertama tidak perlu loncat ke halaman kosong */
-            .tab-content:first-of-type {
                 page-break-before: auto !important;
                 break-before: auto !important;
             }
@@ -73,14 +71,12 @@
                 padding: 0 !important;
             }
 
-            /* Memadatkan jarak spasi elemen di dalam modul agar tanda tangan tertarik naik */
             .card, section, div {
                 margin-bottom: 0.4rem !important;
                 padding-top: 0.25rem !important;
                 padding-bottom: 0.25rem !important;
             }
 
-            /* Mencegah pemisahan di dalam blok tanda tangan & memadatkan ruang tanda tangan */
             .signature-section {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
@@ -88,7 +84,6 @@
                 padding: 0.5rem !important;
             }
 
-            /* Mengurangi tinggi ruang kosong tempat tanda tangan */
             .signature-section .mb-12 {
                 margin-bottom: 1.75rem !important;
             }
@@ -130,6 +125,20 @@
                         <option value="bk">Guru Bimbingan Konseling (BK)</option>
                     </select>
                 </div>
+
+                <button onclick="downloadPdfReport()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
+                    <span>📕</span> Unduh PDF (.pdf)
+                </button>
+                <button onclick="downloadWordReport()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
+                    <span>📄</span> Unduh Word (.docx)
+                </button>
+                <button onclick="exportDataJSON()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
+                    <span>💾</span> Simpan (JSON)
+                </button>
+                <button onclick="document.getElementById('importFileInput').click()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
+                    <span>📂</span> Buka File
+                </button>
+                <input type="file" id="importFileInput" onchange="importDataJSON(event)" class="hidden" accept=".json">
 
                 <button onclick="window.print()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
                     <span>🖨️</span> Cetak Laporan
@@ -190,27 +199,27 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Satuan Pendidikan:</label>
-                    <input type="text" id="schoolName" value="SMP Negeri 1 Pembelajaran" oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <input type="text" id="schoolName" value="SMP Negeri 1 Pembelajaran" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama Guru Disupervisi:</label>
-                    <input type="text" id="teacherName" value="Yani Sopiani, S.Pd." oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <input type="text" id="teacherName" value="Yani Sopiani, S.Pd." oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">NIP / NUPTK Guru:</label>
-                    <input type="text" id="teacherNip" value="19850315 201001 1 012" oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <input type="text" id="teacherNip" value="19850315 201001 1 012" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
                     <label id="subjectClassLabel" class="block font-bold text-slate-700 mb-1">Mata Pelajaran & Kelas:</label>
-                    <input type="text" id="subjectClass" value="IPA / VIII (Fase D)" oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <input type="text" id="subjectClass" value="IPA / VIII (Fase D)" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama Supervisor:</label>
-                    <input type="text" id="supervisorName" value="Ida Faridlah, M.Ag." oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <input type="text" id="supervisorName" value="Ida Faridlah, M.Ag." oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">NIP / NUPTK Supervisor:</label>
-                    <input type="text" id="supervisorNip" value="19721114 199802 2 002" oninput="updateIdentities()" class="w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <input type="text" id="supervisorNip" value="19721114 199802 2 002" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
             </div>
         </section>
@@ -243,7 +252,7 @@
                             <span class="text-xl">😊</span>
                             <h3 class="text-sm">Menggembirakan (Joyful)</h3>
                         </div>
-                        <p class="text-xs text-slate-600">Menciptakan iklim belajar dan ruang bimbingan BK yang aman (*safe space*), ramah, bebas intimidasi, dan menyenangkan.</p>
+                        <p class="text-xs text-slate-600">Menciptakan iklim belajar dan ruang bimbingan BK yang aman (<em>safe space</em>), ramah, bebas intimidasi, dan menyenangkan.</p>
                     </div>
                 </div>
             </div>
@@ -283,7 +292,7 @@
                             <div class="p-3 rounded-lg bg-amber-50/60 border border-amber-200">
                                 <h4 class="font-bold text-amber-800 mb-1">🤝 Guru Bimbingan Konseling (BK)</h4>
                                 <ul class="list-disc list-inside text-slate-600 space-y-1">
-                                    <li>Focus: Kesejahteraan Psikologis (*Wellbeing*) & Kemandirian (SKKPD).</li>
+                                    <li>Focus: Kesejahteraan Psikologis (<em>Wellbeing</em>) & Kemandirian (SKKPD).</li>
                                     <li>Metode: Klasikal (Kelas) vs Non-Klasikal (Konseling/Referal).</li>
                                     <li>Etika & Evaluasi: Mengedepankan Asas Kerahasiaan & Hasil UCA.</li>
                                 </ul>
@@ -399,59 +408,59 @@
                                 <td class="p-3 text-center font-bold">1</td>
                                 <td class="p-3 font-semibold">Keselarasan Tujuan Pembelajaran (TP)</td>
                                 <td class="p-3">TP merujuk pada CP BSKAP No. 046/2025 dan Standar Isi Permendikdasmen No. 12/2025.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">TP selaras dengan CP Fase D IPA.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_mapel_1" onchange="calculatePraScore()" class="pra-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_mapel_note_1" class="save-state w-full p-1 border rounded auto-expand" rows="1">TP selaras dengan CP Fase D IPA.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">2</td>
                                 <td class="p-3 font-semibold">Kesiapan Asesmen Diagnostik & Diferensiasi</td>
                                 <td class="p-3">Memiliki pemetaan asesmen awal untuk merancang diferensiasi proses/produk murid SMP.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Instrumen diagnostik awal terlampir lengkap.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_mapel_2" onchange="calculatePraScore()" class="pra-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_mapel_note_2" class="save-state w-full p-1 border rounded auto-expand" rows="1">Instrumen diagnostik awal terlampir lengkap.</textarea></td>
                             </tr>
                             <tr class="bg-emerald-50/50 font-bold text-emerald-950"><td colspan="5" class="p-2 px-3">II. DESAIN PEMBELAJARAN MENDALAM (DEEP LEARNING)</td></tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">3</td>
                                 <td class="p-3 font-semibold">Prinsip Berkesadaran (Mindful)</td>
                                 <td class="p-3">Merancang kegiatan awal yang membangun kesadaran emosional dan orientasi tujuan belajar.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Sangat baik dalam membangun apersepsi mandiri.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_mapel_3" onchange="calculatePraScore()" class="pra-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="pra_mapel_note_3" class="save-state w-full p-1 border rounded auto-expand" rows="1">Sangat baik dalam membangun apersepsi mandiri.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">4</td>
                                 <td class="p-3 font-semibold">Prinsip Bermakna (Meaningful) & Litnum</td>
                                 <td class="p-3">Materi dikaitkan dengan konteks nyata serta melatih penalaran bacaan/data (Literasi-Numerasi).</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Studi kasus lingkungan dan analisis tabel data.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_mapel_4" onchange="calculatePraScore()" class="pra-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_mapel_note_4" class="save-state w-full p-1 border rounded auto-expand" rows="1">Studi kasus lingkungan dan analisis tabel data.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">5</td>
                                 <td class="p-3 font-semibold">Prinsip Menggembirakan (Joyful)</td>
                                 <td class="p-3">Mengintegrasikan strategi interaktif dan tantangan positif yang memotivasi murid.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Metode simulasi eksperimen kelompok interaktif.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_mapel_5" onchange="calculatePraScore()" class="pra-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_mapel_note_5" class="save-state w-full p-1 border rounded auto-expand" rows="1">Metode simulasi eksperimen kelompok interaktif.</textarea></td>
                             </tr>
                             <tr class="bg-emerald-50/50 font-bold text-emerald-950"><td colspan="5" class="p-2 px-3">III. ALUR PENGALAMAN BELAJAR (PERMENDIKDASMEN 1/2026)</td></tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">6</td>
                                 <td class="p-3 font-semibold">Tahap Memahami</td>
                                 <td class="p-3">Aktivitas pengonstruksian konsep secara mendalam untuk mencegah surface learning.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Peta konsep terstruktur dengan baik.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_mapel_6" onchange="calculatePraScore()" class="pra-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_mapel_note_6" class="save-state w-full p-1 border rounded auto-expand" rows="1">Peta konsep terstruktur dengan baik.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">7</td>
                                 <td class="p-3 font-semibold">Tahap Mengaplikasi</td>
                                 <td class="p-3">Penerapan pemahaman dalam penugasan kontekstual, proyek, atau simulasi praktis.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Penyusunan laporan percobaan kelompok.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_mapel_7" onchange="calculatePraScore()" class="pra-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_mapel_note_7" class="save-state w-full p-1 border rounded auto-expand" rows="1">Penyusunan laporan percobaan kelompok.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">8</td>
                                 <td class="p-3 font-semibold">Tahap Merefleksi</td>
                                 <td class="p-3">Mengevaluasi proses dan pencapaian belajar sendiri secara mandiri dan terarah.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Lembar refleksi terstruktur siap digunakan.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_mapel_8" onchange="calculatePraScore()" class="pra-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="pra_mapel_note_8" class="save-state w-full p-1 border rounded auto-expand" rows="1">Lembar refleksi terstruktur siap digunakan.</textarea></td>
                             </tr>
                         </tbody>
                     </table>
@@ -475,59 +484,59 @@
                                 <td class="p-3 text-center font-bold">1</td>
                                 <td class="p-3 font-semibold">Asesmen Kebutuhan Layanan BK</td>
                                 <td class="p-3">Memiliki instrumen & deskripsi kebutuhan peserta didik berbasis data asesmen DCM/AKPD.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Asesmen AKPD dilaksanakan awal semester.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_bk_1" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_bk_note_1" class="save-state w-full p-1 border rounded auto-expand" rows="1">Asesmen AKPD dilaksanakan awal semester.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">2</td>
                                 <td class="p-3 font-semibold">Program Tahunan & Semester BK</td>
                                 <td class="p-3">Menyusun Program Tahunan/Semester yang mencakup 4 komponen (Klasikal & Non-Klasikal).</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Program lengkap disahkan Kepala Sekolah.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_bk_2" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="pra_bk_note_2" class="save-state w-full p-1 border rounded auto-expand" rows="1">Program lengkap disahkan Kepala Sekolah.</textarea></td>
                             </tr>
                             <tr class="bg-amber-50/50 font-bold text-amber-950"><td colspan="5" class="p-2 px-3">II. PERANCANGAN RENCANA PELAKSANAAN LAYANAN (RPL BK)</td></tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">3</td>
                                 <td class="p-3 font-semibold">Keselarasan RPL dengan SKKPD</td>
                                 <td class="p-3">RPL BK merujuk pada pemetaan Tugas Perkembangan SKKPD & Dimensi Profil Lulusan.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">RPL Klasikal selaras aspek kesadaran gender.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_bk_3" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_bk_note_3" class="save-state w-full p-1 border rounded auto-expand" rows="1">RPL Klasikal selaras aspek kesadaran gender.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">4</td>
                                 <td class="p-3 font-semibold">Integrasi Deep Learning dalam BK</td>
                                 <td class="p-3">Merancang alur layanan yang Mindful, Meaningful, Joyful serta mengembangkan KSE.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">RPL memuat teknik refleksi emosi KSE.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_bk_4" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_bk_note_4" class="save-state w-full p-1 border rounded auto-expand" rows="1">RPL memuat teknik refleksi emosi KSE.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">5</td>
-                                <td class="p-3 font-semibold">Ketersediaan Media Layanan BK</td>
+                                <td class="p-3 font-semibold">Ktersediaan Media Layanan BK</td>
                                 <td class="p-3">Menyiapkan media variatif/inovatif (PPT, Canva, Biblioedukasi, Sinema Edukasi).</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Media sinema edukasi disiapkan interaktif.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_bk_5" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="pra_bk_note_5" class="save-state w-full p-1 border rounded auto-expand" rows="1">Media sinema edukasi disiapkan interaktif.</textarea></td>
                             </tr>
                             <tr class="bg-amber-50/50 font-bold text-amber-950"><td colspan="5" class="p-2 px-3">III. KESIAPAN PEMETAAN LAYANAN RESPONSIF & KARIER</td></tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">6</td>
                                 <td class="p-3 font-semibold">Perencanaan Layanan Responsif</td>
                                 <td class="p-3">Menyiapkan instrumen Konseling Individual/Kelompok, Konferensi Kasus, & Referal.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Format konseling & referal siap pakai.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_bk_6" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_bk_note_6" class="save-state w-full p-1 border rounded auto-expand" rows="1">Format konseling & referal siap pakai.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">7</td>
                                 <td class="p-3 font-semibold">Perencanaan Peminatan & Karir</td>
                                 <td class="p-3">Dokumen pemetaan peminatan, ekstrakurikuler, serta perencanaan studi lanjut siswa.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Lembar jejak karier siswa tersedia lengkap.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_bk_7" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_bk_note_7" class="save-state w-full p-1 border rounded auto-expand" rows="1">Lembar jejak karier siswa tersedia lengkap.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">8</td>
                                 <td class="p-3 font-semibold">Rencana Evaluasi & Tindak Lanjut BK</td>
                                 <td class="p-3">Menyusun pemetaan evaluasi proses, evaluasi hasil UCA, dan kepuasan siswa.</td>
-                                <td class="p-3 text-center"><select onchange="calculatePraScore()" class="pra-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Instrumen evaluasi UCA terlampir pada RPL.</textarea></td>
+                                <td class="p-3 text-center"><select id="pra_bk_8" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="pra_bk_note_8" class="save-state w-full p-1 border rounded auto-expand" rows="1">Instrumen evaluasi UCA terlampir pada RPL.</textarea></td>
                             </tr>
                         </tbody>
                     </table>
@@ -570,59 +579,59 @@
                                 <td class="p-3 text-center font-bold">1</td>
                                 <td class="p-3 font-semibold">Iklim Aman & Disiplin Positif (Permendikdasmen 6/2026)</td>
                                 <td class="p-3">Membuat kesepakatan kelas, meyakini nilai kebajikan, & merespons perilaku murid secara restitutif.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Kesepakatan kelas berjalan efektif tanpa ancaman.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_mapel_1" onchange="calculateObsScore()" class="obs-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="obs_mapel_note_1" class="save-state w-full p-1 border rounded auto-expand" rows="1">Kesepakatan kelas berjalan efektif tanpa ancaman.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">2</td>
                                 <td class="p-3 font-semibold">Fasilitasi Pembelajaran Interaktif</td>
                                 <td class="p-3">Mendorong partisipasi aktif murid melalui diskusi, pertanyaan pemantik, & kerja kelompok.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Diskusi kelompok berjalan aktif dan berurutan.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_mapel_2" onchange="calculateObsScore()" class="obs-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_mapel_note_2" class="save-state w-full p-1 border rounded auto-expand" rows="1">Diskusi kelompok berjalan aktif dan berurutan.</textarea></td>
                             </tr>
                             <tr class="bg-emerald-50/50 font-bold text-emerald-950"><td colspan="5" class="p-2 px-3">II. EKSEKUSI PEDAGOGI PEMBELAJARAN MENDALAM</td></tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">3</td>
                                 <td class="p-3 font-semibold">Integrasi Literasi, Numerasi & Kontekstual</td>
                                 <td class="p-3">Menghubungkan topik dengan masalah nyata serta melatih kecakapan membaca grafik/tabel & teks (Lit-Num).</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Siswa diajak membaca data grafik ekosistem.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_mapel_3" onchange="calculateObsScore()" class="obs-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_mapel_note_3" class="save-state w-full p-1 border rounded auto-expand" rows="1">Siswa diajak membaca data grafik ekosistem.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">4</td>
                                 <td class="p-3 font-semibold">Pendampingan & Scaffolding</td>
                                 <td class="p-3">Memberikan bimbingan terarah bagi kelompok/murid yang membutuhkan bantuan lebih.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Guru proaktif menghampiri meja siswa kesulitan.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_mapel_4" onchange="calculateObsScore()" class="obs-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="obs_mapel_note_4" class="save-state w-full p-1 border rounded auto-expand" rows="1">Guru proaktif menghampiri meja siswa kesulitan.</textarea></td>
                             </tr>
                             <tr class="bg-emerald-50/50 font-bold text-emerald-950"><td colspan="5" class="p-2 px-3">III. ASESMEN FORMATIF & REFLEKSI KELAS</td></tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">5</td>
                                 <td class="p-3 font-semibold">Pelaksanaan Asesmen Formatif</td>
                                 <td class="p-3">Memantau pemahaman murid secara berkala selama alur proses pembelajaran berlangsung.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Pertanyaan cek pemahaman dilakukan berkala.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_mapel_5" onchange="calculateObsScore()" class="obs-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_mapel_note_5" class="save-state w-full p-1 border rounded auto-expand" rows="1">Pertanyaan cek pemahaman dilakukan berkala.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">6</td>
                                 <td class="p-3 font-semibold">Umpan Balik Konstruktif</td>
                                 <td class="p-3">Memberikan respons responsif dan memotivasi terhadap pertanyaan dan hasil kerja murid.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Apresiasi positif diberikan secara spontan.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_mapel_6" onchange="calculateObsScore()" class="obs-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_mapel_note_6" class="save-state w-full p-1 border rounded auto-expand" rows="1">Apresiasi positif diberikan secara spontan.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">7</td>
                                 <td class="p-3 font-semibold">Pengelolaan Waktu & Dinamika</td>
                                 <td class="p-3">Mengelola alokasi waktu efektif dari pendahuluan, inti, hingga penutup.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Alokasi waktu tiap tahap berjalan tepat.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_mapel_7" onchange="calculateObsScore()" class="obs-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_mapel_note_7" class="save-state w-full p-1 border rounded auto-expand" rows="1">Alokasi waktu tiap tahap berjalan tepat.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">8</td>
                                 <td class="p-3 font-semibold">Fasilitasi Refleksi Akhir Pembelajaran</td>
                                 <td class="p-3">Membimbing murid menyimpulkan materi dan melakukan refleksi keberhasilan belajar.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-mapel w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Refleksi mandiri berjalan dengan baik di akhir sesi.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_mapel_8" onchange="calculateObsScore()" class="obs-score-mapel save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="obs_mapel_note_8" class="save-state w-full p-1 border rounded auto-expand" rows="1">Refleksi mandiri berjalan dengan baik di akhir sesi.</textarea></td>
                             </tr>
                         </tbody>
                     </table>
@@ -645,60 +654,60 @@
                             <tr>
                                 <td class="p-3 text-center font-bold">1</td>
                                 <td class="p-3 font-semibold">Keterampilan Pembukaan Klasikal</td>
-                                <td class="p-3">Membangun hubungan baik (*rapport*), menjelaskan tujuan layanan, & menciptakan suasana hangat.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Rapport dan empati awal terbangun sangat baik.</textarea></td>
+                                <td class="p-3">Membangun hubungan baik (<em>rapport</em>), menjelaskan tujuan layanan, & menciptakan suasana hangat.</td>
+                                <td class="p-3 text-center"><select id="obs_bk_1" onchange="calculateObsScore()" class="obs-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="obs_bk_note_1" class="save-state w-full p-1 border rounded auto-expand" rows="1">Rapport dan empati awal terbangun sangat baik.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">2</td>
                                 <td class="p-3 font-semibold">Penggunaan Media Layanan Variatif</td>
                                 <td class="p-3">Menggunakan media (PPT, Canva, Video Sinema Edukasi) secara inovatif mendukung kebutuhan siswa.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Media sinema edukasi berhasil menarik antusiasme.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_bk_2" onchange="calculateObsScore()" class="obs-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_bk_note_2" class="save-state w-full p-1 border rounded auto-expand" rows="1">Media sinema edukasi berhasil menarik antusiasme.</textarea></td>
                             </tr>
                             <tr class="bg-amber-50/50 font-bold text-amber-950"><td colspan="5" class="p-2 px-3">II. OPERASIONAL NON-KLASIKAL & ETIKA KERAHASIAAN</td></tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">3</td>
                                 <td class="p-3 font-semibold">Pengelolaan Ruang Safe Space & Etika BK</td>
                                 <td class="p-3">Menjaga asas kerahasiaan konseling individual (supervisor menilai kelayakan sarana & rekam rekap, bukan menginterupsi proses privat).</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Ruang privat aman, kerahasiaan konseling terjamin.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_bk_3" onchange="calculateObsScore()" class="obs-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="obs_bk_note_3" class="save-state w-full p-1 border rounded auto-expand" rows="1">Ruang privat aman, kerahasiaan konseling terjamin.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">4</td>
                                 <td class="p-3 font-semibold">Fasilitasi Konseling Kelompok/Bimbingan Sebaya</td>
                                 <td class="p-3">Mengelola dinamika kelompok secara empati, mendorong anggota saling memberikan dukungan positif.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Dinamika kelompok konseling berjalan terbuka.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_bk_4" onchange="calculateObsScore()" class="obs-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="obs_bk_note_4" class="save-state w-full p-1 border rounded auto-expand" rows="1">Dinamika kelompok konseling berjalan terbuka.</textarea></td>
                             </tr>
                             <tr class="bg-amber-50/50 font-bold text-amber-950"><td colspan="5" class="p-2 px-3">III. EVALUASI LAYANAN RESPONSIF & UMPAN BALIK (PERMENDIKDASMEN 6/2026)</td></tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">5</td>
                                 <td class="p-3 font-semibold">Pengembangan KSE Peserta Didik</td>
                                 <td class="p-3">Mendorong kesadaran emosional, empati, serta keterampilan sosial antarpeserta didik.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Siswa diajak mensimulasikan empati antar teman.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_bk_5" onchange="calculateObsScore()" class="obs-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_bk_note_5" class="save-state w-full p-1 border rounded auto-expand" rows="1">Siswa diajak mensimulasikan empati antar teman.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">6</td>
                                 <td class="p-3 font-semibold">Asesmen Evaluasi Hasil Layanan UCA</td>
-                                <td class="p-3">Mengumpulkan umpan balik pemahaman baru (*understanding*), perasaan positif (*comfort*), & rencana aksi (*action*).</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Evaluasi UCA terisi dengan lengkap oleh peserta.</textarea></td>
+                                <td class="p-3">Mengumpulkan umpan balik pemahaman baru (<em>understanding</em>), perasaan positif (<em>comfort</em>), & rencana aksi (<em>action</em>).</td>
+                                <td class="p-3 text-center"><select id="obs_bk_6" onchange="calculateObsScore()" class="obs-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_bk_note_6" class="save-state w-full p-1 border rounded auto-expand" rows="1">Evaluasi UCA terisi dengan lengkap oleh peserta.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">7</td>
                                 <td class="p-3 font-semibold">Responsif Terhadap Masalah Murid</td>
                                 <td class="p-3">Peka mendeteksi tanda awal dinamika perundungan, kecemasan, atau alih tangan kasus (referal).</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Proaktif menanggapi isu kecemasan murid.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_bk_7" onchange="calculateObsScore()" class="obs-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
+                                <td class="p-3"><textarea id="obs_bk_note_7" class="save-state w-full p-1 border rounded auto-expand" rows="1">Proaktif menanggapi isu kecemasan murid.</textarea></td>
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">8</td>
                                 <td class="p-3 font-semibold">Tindak Lanjut & Komitmen Perubahan</td>
                                 <td class="p-3">Membimbing peserta didik menyusun komitmen perbaikan diri dan rencana aksi konkret.</td>
-                                <td class="p-3 text-center"><select onchange="calculateObsScore()" class="obs-score-bk w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
-                                <td class="p-3"><textarea class="w-full p-1 border rounded auto-expand" rows="1">Rencana aksi mandiri disusun siswa secara jelas.</textarea></td>
+                                <td class="p-3 text-center"><select id="obs_bk_8" onchange="calculateObsScore()" class="obs-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></td>
+                                <td class="p-3"><textarea id="obs_bk_note_8" class="save-state w-full p-1 border rounded auto-expand" rows="1">Rencana aksi mandiri disusun siswa secara jelas.</textarea></td>
                             </tr>
                         </tbody>
                     </table>
@@ -721,13 +730,13 @@
                     <div class="p-4 bg-sky-50/60 border border-sky-200 rounded-xl">
                         <label class="block font-bold text-sky-900 text-xs mb-1">1. Refleksi Mandiri Guru Mapel (Self-Reflection):</label>
                         <p class="text-[11px] text-sky-700 mb-2">Apa yang sudah berjalan baik dan tantangan instruksional/pengelolaan kelas selama pembelajaran?</p>
-                        <textarea id="refleksiGuruMapel" class="w-full p-2.5 border border-sky-300 rounded text-xs auto-expand bg-white focus:ring-1 focus:ring-sky-500" rows="3" placeholder="Tuliskan refleksi mandiri guru mapel di sini...">Secara keseluruhan alur Deep Learning berjalan sesuai skenario, namun pada alokasi waktu refleksi akhir siswa masih membutuhkan sedikit arahan tambahan.</textarea>
+                        <textarea id="refleksiGuruMapel" class="save-state w-full p-2.5 border border-sky-300 rounded text-xs auto-expand bg-white focus:ring-1 focus:ring-sky-500" rows="3" placeholder="Tuliskan refleksi mandiri guru mapel di sini...">Secara keseluruhan alur Deep Learning berjalan sesuai skenario, namun pada alokasi waktu refleksi akhir siswa masih membutuhkan sedikit arahan tambahan.</textarea>
                     </div>
 
                     <div class="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl">
                         <label class="block font-bold text-emerald-900 text-xs mb-1">2. Catatan Apresiasi & Umpan Balik Supervisor:</label>
                         <p class="text-[11px] text-emerald-700 mb-2">Fakta positif yang ditemukan dan aspek kunci peningkatan mutu instruksional.</p>
-                        <textarea id="catatanSupervisorMapel" class="w-full p-2.5 border border-emerald-300 rounded text-xs auto-expand bg-white focus:ring-1 focus:ring-emerald-500" rows="3" placeholder="Tuliskan umpan balik supervisor di sini...">Penguasaan kelas dan penerapan disiplin positif sangat baik. Disarankan memberi porsi lebih banyak pada penalaran data (numerasi) saat diskusi kelompok.</textarea>
+                        <textarea id="catatanSupervisorMapel" class="save-state w-full p-2.5 border border-emerald-300 rounded text-xs auto-expand bg-white focus:ring-1 focus:ring-emerald-500" rows="3" placeholder="Tuliskan umpan balik supervisor di sini...">Penguasaan kelas dan penerapan disiplin positif sangat baik. Disarankan memberi porsi lebih banyak pada penalaran data (numerasi) saat diskusi kelompok.</textarea>
                     </div>
                 </div>
 
@@ -737,19 +746,19 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-4">
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded border border-slate-200 cursor-pointer hover:bg-slate-100">
-                            <input type="checkbox" checked class="rounded text-emerald-600 focus:ring-emerald-500">
+                            <input type="checkbox" id="pkb_mapel_1" checked class="save-state rounded text-emerald-600 focus:ring-emerald-500">
                             <span class="font-medium text-slate-700">Pelatihan Mandiri PMM</span>
                         </label>
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded border border-slate-200 cursor-pointer hover:bg-slate-100">
-                            <input type="checkbox" checked class="rounded text-emerald-600 focus:ring-emerald-500">
+                            <input type="checkbox" id="pkb_mapel_2" checked class="save-state rounded text-emerald-600 focus:ring-emerald-500">
                             <span class="font-medium text-slate-700">Mentoring Guru Penggerak</span>
                         </label>
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded border border-slate-200 cursor-pointer hover:bg-slate-100">
-                            <input type="checkbox" class="rounded text-emerald-600 focus:ring-emerald-500">
+                            <input type="checkbox" id="pkb_mapel_3" class="save-state rounded text-emerald-600 focus:ring-emerald-500">
                             <span class="font-medium text-slate-700">Sharing Session Kombel Mapel</span>
                         </label>
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded border border-slate-200 cursor-pointer hover:bg-slate-100">
-                            <input type="checkbox" class="rounded text-emerald-600 focus:ring-emerald-500">
+                            <input type="checkbox" id="pkb_mapel_4" class="save-state rounded text-emerald-600 focus:ring-emerald-500">
                             <span class="font-medium text-slate-700">Observasi Rekan Sejawat</span>
                         </label>
                     </div>
@@ -757,7 +766,7 @@
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs bg-white p-3 rounded border border-slate-200">
                         <div class="flex items-center space-x-2">
                             <span class="font-bold text-slate-700">Target Waktu Evaluasi Ulang:</span>
-                            <input type="date" value="2026-10-15" class="p-1 border rounded text-xs text-slate-700 bg-slate-50 font-semibold">
+                            <input type="date" id="targetDateMapel" value="2026-10-15" class="save-state p-1 border rounded text-xs text-slate-700 bg-slate-50 font-semibold">
                         </div>
                     </div>
                 </div>
@@ -776,13 +785,13 @@
                     <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl">
                         <label class="block font-bold text-amber-900 text-xs mb-1">1. Refleksi Mandiri Guru BK (Self-Reflection):</label>
                         <p class="text-[11px] text-amber-800 mb-2">Evaluasi dinamika layanan bimbingan klasikal/non-klasikal, keterbukaan konseli, dan pengelolaan UCA.</p>
-                        <textarea id="refleksiGuruBk" class="w-full p-2.5 border border-amber-300 rounded text-xs auto-expand bg-white focus:ring-1 focus:ring-amber-500" rows="3" placeholder="Tuliskan refleksi mandiri guru BK di sini...">Layanan bimbingan klasikal berlangsung interaktif. Peserta didik dapat mengartikulasikan komitmen KSE dengan baik melalui instrumen UCA.</textarea>
+                        <textarea id="refleksiGuruBk" class="save-state w-full p-2.5 border border-amber-300 rounded text-xs auto-expand bg-white focus:ring-1 focus:ring-amber-500" rows="3" placeholder="Tuliskan refleksi mandiri guru BK di sini...">Layanan bimbingan klasikal berlangsung interaktif. Peserta didik dapat mengartikulasikan komitmen KSE dengan baik melalui instrumen UCA.</textarea>
                     </div>
 
                     <div class="p-4 bg-amber-100/50 border border-amber-300 rounded-xl">
                         <label class="block font-bold text-amber-950 text-xs mb-1">2. Catatan Apresiasi & Triangulasi Supervisor:</label>
                         <p class="text-[11px] text-amber-800 mb-2">Umpan balik supervisor terkait pemenuhan etika kerahasiaan, tindak lanjut UCA, dan integrasi KSE.</p>
-                        <textarea id="catatanSupervisorBk" class="w-full p-2.5 border border-amber-300 rounded text-xs auto-expand bg-white focus:ring-1 focus:ring-amber-500" rows="3" placeholder="Tuliskan umpan balik supervisor di sini...">Guru BK berhasil menciptakan ruang bimbingan aman (*safe space*). Rekap harian dan pemetaan instrumen UCA menunjukkan konsistensi evaluasi yang baik.</textarea>
+                        <textarea id="catatanSupervisorBk" class="save-state w-full p-2.5 border border-amber-300 rounded text-xs auto-expand bg-white focus:ring-1 focus:ring-amber-500" rows="3" placeholder="Tuliskan umpan balik supervisor di sini...">Guru BK berhasil menciptakan ruang bimbingan aman (<em>safe space</em>). Rekap harian dan pemetaan instrumen UCA menunjukkan konsistensi evaluasi yang baik.</textarea>
                     </div>
                 </div>
 
@@ -792,19 +801,19 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-4">
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded border border-amber-200 cursor-pointer hover:bg-amber-50">
-                            <input type="checkbox" checked class="rounded text-amber-600 focus:ring-amber-500">
+                            <input type="checkbox" id="pkb_bk_1" checked class="save-state rounded text-amber-600 focus:ring-amber-500">
                             <span class="font-medium text-slate-700">Aktif Kegiatan MGBK</span>
                         </label>
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded border border-amber-200 cursor-pointer hover:bg-amber-50">
-                            <input type="checkbox" checked class="rounded text-amber-600 focus:ring-amber-500">
+                            <input type="checkbox" id="pkb_bk_2" checked class="save-state rounded text-amber-600 focus:ring-amber-500">
                             <span class="font-medium text-slate-700">Pelatihan Konseling Mikro</span>
                         </label>
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded border border-amber-200 cursor-pointer hover:bg-amber-50">
-                            <input type="checkbox" checked class="rounded text-amber-600 focus:ring-amber-500">
+                            <input type="checkbox" id="pkb_bk_3" checked class="save-state rounded text-amber-600 focus:ring-amber-500">
                             <span class="font-medium text-slate-700">Workshop Asesmen AKPD</span>
                         </label>
                         <label class="flex items-center space-x-2 bg-white p-2.5 rounded border border-amber-200 cursor-pointer hover:bg-amber-50">
-                            <input type="checkbox" class="rounded text-amber-600 focus:ring-amber-500">
+                            <input type="checkbox" id="pkb_bk_4" class="save-state rounded text-amber-600 focus:ring-amber-500">
                             <span class="font-medium text-slate-700">Studi Kolaborasi Lintas Sekolah</span>
                         </label>
                     </div>
@@ -812,7 +821,7 @@
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs bg-white p-3 rounded border border-amber-200">
                         <div class="flex items-center space-x-2">
                             <span class="font-bold text-slate-700">Target Waktu Evaluasi Ulang BK:</span>
-                            <input type="date" value="2026-10-15" class="p-1 border rounded text-xs text-slate-700 bg-slate-50 font-semibold">
+                            <input type="date" id="targetDateBk" value="2026-10-15" class="save-state p-1 border rounded text-xs text-slate-700 bg-slate-50 font-semibold">
                         </div>
                         <span class="text-[11px] text-amber-800 font-semibold">📌 Verifikasi Dokumen BK: Jurnal Harian, Rekap Konseling, & Berita Acara Referal Terlampir.</span>
                     </div>
@@ -831,7 +840,7 @@
 
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
                     <label class="block font-bold text-slate-700 text-xs mb-2">Rencana Intervensi Manajerial Kepala Sekolah (Mapel):</label>
-                    <textarea id="implikasiTextareaMapel" class="w-full p-3 border border-slate-300 rounded-lg text-xs auto-expand bg-white" rows="4">1. Memfasilitasi peremajaan alat peraga praktikum dan media digital pembelajaran interaktif.
+                    <textarea id="implikasiTextareaMapel" class="save-state w-full p-3 border border-slate-300 rounded-lg text-xs auto-expand bg-white" rows="4">1. Memfasilitasi peremajaan alat peraga praktikum dan media digital pembelajaran interaktif.
 2. Mengalokasikan waktu rutin bagi Komunitas Belajar (Kombel) mata pelajaran untuk berbagi praktik baik Deep Learning.
 3. Memberikan penguatan kapasitas guru dalam merancang asesmen diagnostik dan diferensiasi pembelajaran.</textarea>
                 </div>
@@ -846,7 +855,7 @@
 
                 <div class="bg-amber-50/40 p-4 rounded-xl border border-amber-200 mb-4">
                     <label class="block font-bold text-amber-900 text-xs mb-2">Rencana Intervensi Manajerial Kepala Sekolah (Guru BK):</label>
-                    <textarea id="implikasiTextareaBk" class="w-full p-3 border border-amber-300 rounded-lg text-xs auto-expand bg-white" rows="4">1. Memfasilitasi peningkatan kualitas Ruang BK agar memenuhi standar privasi konseling individual dan kelompok (ruang kedap suara & nyaman).
+                    <textarea id="implikasiTextareaBk" class="save-state w-full p-3 border border-amber-300 rounded-lg text-xs auto-expand bg-white" rows="4">1. Memfasilitasi peningkatan kualitas Ruang BK agar memenuhi standar privasi konseling individual dan kelompok (ruang kedap suara & nyaman).
 2. Mendukung partisipasi aktif Guru BK dalam Musyawarah Guru Bimbingan Konseling (MGBK) dan pelatihan konseling mikro.
 3. Mengoptimalkan kolaborasi berkala antara Guru BK, Wali Kelas, dan Guru Mapel untuk penanganan dini kesulitan belajar murid.</textarea>
                 </div>
@@ -856,7 +865,7 @@
         <!-- LEMBAR TANDA TANGAN (BISA DICETAK) -->
         <section class="signature-section mt-8 pt-6 border-t border-slate-300 bg-white p-6 rounded-xl shadow-sm">
             <div class="mb-6 text-right text-xs font-semibold text-slate-700">
-                <input type="text" id="titimangsaInput" value="Ditetapkan di: Garut, 15 September 2026" class="text-right border-b border-dashed border-slate-400 focus:border-emerald-600 focus:outline-none p-1 w-72 bg-transparent font-medium text-slate-800">
+                <input type="text" id="titimangsaInput" value="Ditetapkan di: Garut, 15 September 2026" class="save-state text-right border-b border-dashed border-slate-400 focus:border-emerald-600 focus:outline-none p-1 w-72 bg-transparent font-medium text-slate-800">
             </div>
 
             <div class="grid grid-cols-2 gap-8 text-center text-xs">
@@ -919,7 +928,6 @@
                 badge.innerText = "Mapel Mode";
                 badge.className = "text-[10px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-800 uppercase";
 
-                // Switch Tab Containers
                 document.getElementById('praTableMapelContainer').classList.remove('hidden');
                 document.getElementById('praTableBkContainer').classList.add('hidden');
 
@@ -940,7 +948,6 @@
                 badge.innerText = "Guru BK Mode";
                 badge.className = "text-[10px] font-bold px-2 py-1 rounded bg-amber-100 text-amber-800 uppercase";
 
-                // Switch Tab Containers
                 document.getElementById('praTableMapelContainer').classList.add('hidden');
                 document.getElementById('praTableBkContainer').classList.remove('hidden');
 
@@ -956,13 +963,19 @@
 
             calculatePraScore();
             calculateObsScore();
+            saveAllData();
         }
 
         function updateIdentities() {
-            document.getElementById('sigTeacherName').innerText = document.getElementById('teacherName').value || '-';
-            document.getElementById('sigTeacherNip').innerText = 'NIP. ' + (document.getElementById('teacherNip').value || '-');
-            document.getElementById('sigSupervisorName').innerText = document.getElementById('supervisorName').value || '-';
-            document.getElementById('sigSupervisorNip').innerText = 'NIP. ' + (document.getElementById('supervisorNip').value || '-');
+            const tName = document.getElementById('teacherName').value || '-';
+            const tNip = document.getElementById('teacherNip').value || '-';
+            const sName = document.getElementById('supervisorName').value || '-';
+            const sNip = document.getElementById('supervisorNip').value || '-';
+
+            document.getElementById('sigTeacherName').innerText = tName;
+            document.getElementById('sigTeacherNip').innerText = 'NIP. ' + tNip;
+            document.getElementById('sigSupervisorName').innerText = sName;
+            document.getElementById('sigSupervisorNip').innerText = 'NIP. ' + sNip;
         }
 
         function calculatePraScore() {
@@ -1053,8 +1066,147 @@
             chartInstance.update();
         }
 
+        /* --- FUNGSI UNDUH DOKUMEN PDF (OTOMATIS) --- */
+        function downloadPdfReport() {
+            const element = document.getElementById('printable-supervision-area');
+            const teacherName = document.getElementById('teacherName').value || 'Guru';
+            const roleName = currentRole === 'mapel' ? 'Mapel' : 'BK';
+            
+            const opt = {
+                margin:       [8, 8, 8, 8],
+                filename:     `Laporan_Supervisi_${roleName}_${teacherName.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Menyembunyikan elemen no-print secara eksplisit selama pembuatan PDF
+            document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+            });
+        }
+
+        /* --- FUNGSI UNDUH DOKUMEN WORD (.DOCX) --- */
+        function downloadWordReport() {
+            const reportElement = document.getElementById('printable-supervision-area') || document.body;
+            const teacherName = document.getElementById('teacherName').value || 'Guru';
+            const roleName = currentRole === 'mapel' ? 'Mapel' : 'BK';
+
+            const contentClone = reportElement.cloneNode(true);
+            contentClone.querySelectorAll('.no-print').forEach(el => el.remove());
+
+            contentClone.querySelectorAll('input, select, textarea').forEach(el => {
+                const parent = el.parentNode;
+                let valText = '';
+                if (el.tagName.toLowerCase() === 'select') {
+                    valText = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value;
+                } else if (el.type === 'checkbox') {
+                    valText = el.checked ? '☑' : '☐';
+                } else {
+                    valText = el.value || '';
+                }
+                const span = document.createElement('span');
+                span.textContent = valText;
+                span.style.fontWeight = 'bold';
+                parent.replaceChild(span, el);
+            });
+
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #1e293b; }
+                        h1, h2, h3, h4 { color: #047857; margin-top: 10px; margin-bottom: 5px; }
+                        table { border-collapse: collapse; width: 100%; margin-top: 8px; margin-bottom: 12px; }
+                        th, td { border: 1px solid #64748b; padding: 6px; text-align: left; vertical-align: top; font-size: 9.5pt; }
+                        th { background-color: #ecfdf5; color: #064e3b; font-weight: bold; }
+                        .hidden { display: none !important; }
+                    </style>
+                </head>
+                <body>
+                    ${contentClone.innerHTML}
+                </body>
+                </html>
+            `;
+
+            const converted = htmlDocx.asBlob(htmlContent);
+            const fileName = `Laporan_Supervisi_${roleName}_${teacherName.replace(/[^a-z0-9]/gi, '_')}.docx`;
+            saveAs(converted, fileName);
+        }
+
+        /* --- FUNGSI MANAJEMEN PENYIMPANAN DATA AUTO & FILE --- */
+        function saveAllData() {
+            const formData = { role: currentRole };
+            document.querySelectorAll('.save-state').forEach((el) => {
+                if (!el.id) return;
+                if (el.type === 'checkbox') {
+                    formData[el.id] = el.checked;
+                } else {
+                    formData[el.id] = el.value;
+                }
+            });
+            localStorage.setItem('supervisi_app_data', JSON.stringify(formData));
+        }
+
+        function loadSavedData() {
+            const savedRaw = localStorage.getItem('supervisi_app_data');
+            if (!savedRaw) return;
+            try {
+                const formData = JSON.parse(savedRaw);
+                if (formData.role) {
+                    switchSupervisionRole(formData.role);
+                }
+                Object.keys(formData).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (el.type === 'checkbox') {
+                            el.checked = formData[id];
+                        } else {
+                            el.value = formData[id];
+                        }
+                    }
+                });
+                updateIdentities();
+            } catch (e) {
+                console.error("Gagal memuat data dari LocalStorage", e);
+            }
+        }
+
+        function exportDataJSON() {
+            saveAllData();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(localStorage.getItem('supervisi_app_data'));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Supervisi_${document.getElementById('teacherName').value.replace(/[^a-z0-9]/gi, '_')}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataJSON(event) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    localStorage.setItem('supervisi_app_data', JSON.stringify(data));
+                    loadSavedData();
+                    calculatePraScore();
+                    calculateObsScore();
+                    alert("Data berhasil dipulihkan dari file JSON!");
+                } catch (err) {
+                    alert("Format file tidak valid.");
+                }
+            };
+            if(event.target.files[0]) reader.readAsText(event.target.files[0]);
+        }
+
         function resetAllForms() {
-            if (confirm("Apakah Anda yakin ingin mengembalikan skor dan input data ke batas awal?")) {
+            if (confirm("Apakah Anda yakin ingin mengembalikan skor dan input data ke batas awal? Data yang tersimpan akan dihapus.")) {
+                localStorage.removeItem('supervisi_app_data');
                 location.reload();
             }
         }
@@ -1101,8 +1253,22 @@
                 }
             });
 
+            document.querySelectorAll('.save-state').forEach(el => {
+                el.addEventListener('change', () => {
+                    saveAllData();
+                    calculatePraScore();
+                    calculateObsScore();
+                });
+                el.addEventListener('input', () => {
+                    saveAllData();
+                    updateIdentities();
+                });
+            });
+
+            loadSavedData();
             calculatePraScore();
             calculateObsScore();
+            updateIdentities();
         };
     </script>
 </body>
