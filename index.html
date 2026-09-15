@@ -863,24 +863,28 @@
         </section>
 
         <!-- LEMBAR TANDA TANGAN (BISA DICETAK) -->
-        <section class="signature-section mt-8 pt-6 border-t border-slate-300 bg-white p-6 rounded-xl shadow-sm">
-            <div class="mb-6 text-right text-xs font-semibold text-slate-700">
-                <input type="text" id="titimangsaInput" value="Ditetapkan di: Garut, 15 September 2026" class="save-state text-right border-b border-dashed border-slate-400 focus:border-emerald-600 focus:outline-none p-1 w-72 bg-transparent font-medium text-slate-800">
+<section class="signature-section mt-8 pt-6 border-t border-slate-300 bg-white p-6 rounded-xl shadow-sm">
+    <div class="grid grid-cols-2 gap-8 text-center text-xs items-end">
+        <!-- Kolom Kiri: Guru Disupervisi -->
+        <div>
+            <p class="mb-12 text-slate-600">Guru Disupervisi,</p>
+            <p class="font-bold underline text-slate-900" id="sigTeacherName">Yani Sopiani, S.Pd.</p>
+            <p class="text-slate-500 mt-0.5" id="sigTeacherNip">NIP. 19850315 201001 1 012</p>
+        </div>
+
+        <!-- Kolom Kanan: Titimangsa & Supervisor (Sejajar Tegak Lurus) -->
+        <div class="flex flex-col items-center">
+            <!-- Input Titimangsa dimasukkan ke dalam kolom kanan -->
+            <div class="mb-2 text-center w-full">
+                <input type="text" id="titimangsaInput" value="Ditetapkan di: Garut, 15 September 2026" class="save-state text-center border-b border-dashed border-slate-400 focus:border-emerald-600 focus:outline-none p-1 w-full max-w-xs bg-transparent font-medium text-slate-800">
             </div>
 
-            <div class="grid grid-cols-2 gap-8 text-center text-xs">
-                <div>
-                    <p class="mb-12 text-slate-600">Guru Disupervisi,</p>
-                    <p class="font-bold underline text-slate-900" id="sigTeacherName">Yani Sopiani, S.Pd.</p>
-                    <p class="text-slate-500 mt-0.5" id="sigTeacherNip">NIP. 19850315 201001 1 012</p>
-                </div>
-                <div>
-                    <p class="mb-12 text-slate-600">Supervisor / Kepala Sekolah,</p>
-                    <p class="font-bold underline text-slate-900" id="sigSupervisorName">Ida Faridlah, M.Ag.</p>
-                    <p class="text-slate-500 mt-0.5" id="sigSupervisorNip">NIP. 19721114 199802 2 002</p>
-                </div>
-            </div>
-        </section>
+            <p class="mb-12 text-slate-600">Supervisor / Kepala Sekolah,</p>
+            <p class="font-bold underline text-slate-900" id="sigSupervisorName">Ida Faridlah, M.Ag.</p>
+            <p class="text-slate-500 mt-0.5" id="sigSupervisorNip">NIP. 19721114 199802 2 002</p>
+        </div>
+    </div>
+</section>
     </main>
 
     <!-- FOOTER IDENTITAS PENGEMBANG -->
@@ -1205,37 +1209,60 @@
         }
 
         function resetAllForms() {
-            if (confirm("Apakah Anda yakin ingin mengosongkan seluruh data pada formulir?")) {
-                // 1. Hapus data tersimpan di LocalStorage jika ada
-                localStorage.removeItem('supervisi_app_data');
+    if (confirm("Apakah Anda yakin ingin mengosongkan seluruh data pada formulir?")) {
+        // 1. Simpan nilai titimangsa sebelum di-reset
+        const titimangsaInput = document.getElementById('titimangsaInput');
+        const savedTitimangsa = titimangsaInput ? titimangsaInput.value : '';
 
-                // 2. Kosongkan semua input, select, dan textarea
-                const inputs = document.querySelectorAll('input, select, textarea');
-                inputs.forEach(input => {
-                    if (input.type === 'checkbox' || input.type === 'radio') {
-                        input.checked = false;
-                    } else if (input.type !== 'button' && input.type !== 'submit' && input.type !== 'reset') {
-                        input.value = '';
-                    }
-                });
+        // 2. Hapus data di LocalStorage
+        localStorage.removeItem('supervisi_app_data');
 
-                // 3. Reset state data internal jika aplikasi menggunakannya
-                if (typeof appData !== 'undefined') {
-                    Object.keys(appData).forEach(key => {
-                        if (typeof appData[key] === 'object' && appData[key] !== null) {
-                            appData[key] = Array.isArray(appData[key]) ? [] : {};
-                        } else {
-                            appData[key] = '';
-                        }
-                    });
-                }
-
-                // 4. Perbarui grafik/UI jika ada fungsi pembaru grafik
-                if (typeof updateCharts === 'function') {
-                    updateCharts();
-                }
+        // 3. Kosongkan semua input, select, dan textarea (KECUALI input titimangsa)
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (input.id === 'titimangsaInput') {
+                return; // Lompati input titimangsa agar tidak terhapus
             }
+
+            if (input.type === 'checkbox' || input.type === 'radio') {
+                input.checked = false;
+            } else if (input.type !== 'button' && input.type !== 'submit' && input.type !== 'reset') {
+                input.value = '';
+            }
+        });
+
+        // 4. Kosongkan tampilan teks nama & NIP di lembar tanda tangan
+        const sigTeacherName = document.getElementById('sigTeacherName');
+        const sigTeacherNip = document.getElementById('sigTeacherNip');
+        const sigSupervisorName = document.getElementById('sigSupervisorName');
+        const sigSupervisorNip = document.getElementById('sigSupervisorNip');
+
+        if (sigTeacherName) sigTeacherName.textContent = '( .................... )';
+        if (sigTeacherNip) sigTeacherNip.textContent = 'NIP. -';
+        if (sigSupervisorName) sigSupervisorName.textContent = '( .................... )';
+        if (sigSupervisorNip) sigSupervisorNip.textContent = 'NIP. -';
+
+        // 5. Pastikan nilai titimangsa tetap utuh/kembali terisi
+        if (titimangsaInput) {
+            titimangsaInput.value = savedTitimangsa || "Ditetapkan di: Garut, 15 September 2026";
         }
+
+        // 6. Reset state data internal jika ada
+        if (typeof appData !== 'undefined') {
+            Object.keys(appData).forEach(key => {
+                if (typeof appData[key] === 'object' && appData[key] !== null) {
+                    appData[key] = Array.isArray(appData[key]) ? [] : {};
+                } else {
+                    appData[key] = '';
+                }
+            });
+        }
+
+        // 7. Perbarui UI/Grafik jika fungsi pendukung tersedia
+        if (typeof updateCharts === 'function') updateCharts();
+        if (typeof updateIdentities === 'function') updateIdentities();
+    }
+}
 
         window.onload = function() {
             const ctx = document.getElementById('profilLulusanChart').getContext('2d');
