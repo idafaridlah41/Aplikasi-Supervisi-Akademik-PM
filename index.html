@@ -63,15 +63,14 @@
         }
 
         @media print {
-            /* Sembunyikan elemen UI non-cetak */
+            /* Sembunyikan elemen UI non-cetak standar */
             .no-print, 
             header, 
             nav, 
             footer, 
             button, 
             .alert-box, 
-            #identity-section,
-            #custom-modal-container {
+            #identity-section {
                 display: none !important;
                 height: 0 !important;
                 margin: 0 !important;
@@ -86,8 +85,41 @@
                 width: 100% !important;
             }
 
+            /* ATURAN JIKA MENCETAK MODAL RINGKASAN LAPORAN EKSEKUTIF */
+            body.is-printing-summary #printable-supervision-area {
+                display: none !important;
+            }
+
+            body.is-printing-summary #custom-modal-container {
+                position: static !important;
+                display: block !important;
+                background: white !important;
+                backdrop-filter: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+
+            body.is-printing-summary #custom-modal-container > div {
+                max-width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
+            body.is-printing-summary #modalBodyContent {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+
+            /* ATURAN CETAK REGULER TAB NAVIGASI (JIKA TIDAK MENCETAK RINGKASAN) */
+            body:not(.is-printing-summary) #custom-modal-container {
+                display: none !important;
+            }
+
             /* Sembunyikan SEMUA TAB yang TIDAK AKTIF */
-            .tab-content:not(.active) {
+            body:not(.is-printing-summary) .tab-content:not(.active) {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0 !important;
@@ -97,7 +129,7 @@
             }
 
             /* Tampilkan HANYA TAB AKTIF */
-            .tab-content.active {
+            body:not(.is-printing-summary) .tab-content.active {
                 display: block !important;
                 visibility: visible !important;
                 position: static !important;
@@ -1031,10 +1063,10 @@
 
     </main>
 
-    <!-- MODAL CUSTOM UNTUK RINGKASAN EKSEKUTIF / CONFIRMATION -->
+    <!-- MODAL CUSTOM UNTUK RINGKASAN EKSEKUTIF / PREVIEW REPORT & CETAK -->
     <div id="custom-modal-container" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="bg-emerald-900 text-white p-4 flex justify-between items-center">
+            <div class="bg-emerald-900 text-white p-4 flex justify-between items-center no-print">
                 <div class="flex items-center space-x-2">
                     <span class="text-xl">📊</span>
                     <h3 id="modalHeaderTitle" class="font-bold text-sm sm:text-base">Ringkasan Laporan Hasil Supervisi Akademik</h3>
@@ -1078,6 +1110,77 @@
             loadSavedState();
             updateProgressBar();
         };
+
+        function updateIdentities() {
+            const school = document.getElementById('schoolName')?.value || 'SMP Negeri 1 Pembelajaran';
+            const teacher = document.getElementById('teacherName')?.value || 'Ahmad Salman, S.Pd.';
+            const teacherNip = document.getElementById('teacherNip')?.value || '-';
+            const supervisor = document.getElementById('supervisorName')?.value || 'Ida Faridlah Sulaeman';
+            const supervisorNip = document.getElementById('supervisorNip')?.value || '-';
+            const supervisorRole = document.getElementById('supervisorRoleTitle')?.value || 'Pengawas / Kepala Sekolah';
+            const titimangsa = document.getElementById('titimangsaInput')?.value || 'Garut, 15 September 2026';
+            const subject = document.getElementById('subjectClass')?.value || 'IPA / VIII (Fase D)';
+            const role = document.getElementById('globalRoleSelect')?.value || 'mapel';
+
+            // Update Header KOP versi cetak navigasi
+            const headerKops = document.querySelectorAll('.printable-nav-header');
+            headerKops.forEach(kop => {
+                kop.innerHTML = `
+                    <div class="text-center border-b-2 border-slate-800 pb-2 mb-4">
+                        <h2 class="font-extrabold text-sm uppercase tracking-wide">${school}</h2>
+                        <h3 class="font-bold text-xs text-slate-700 uppercase">LEMBAR SUPERVISI AKADEMIK (${role === 'bk' ? 'GURU BK' : 'GURU MAPEL'})</h3>
+                        <p class="text-[10px] text-slate-600">Terintegrasi Pembelajaran Mendalam (Deep Learning) — Kebijakan Kemendikdasmen</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px] mb-3 border border-slate-300 p-2 rounded bg-slate-50/50">
+                        <div><strong>Guru Disupervisi:</strong> ${teacher} (${teacherNip})</div>
+                        <div><strong>${role === 'bk' ? 'Bidang / Sasaran:' : 'Mapel / Kelas:'}</strong> ${subject}</div>
+                        <div><strong>Supervisor:</strong> ${supervisor} (${supervisorNip})</div>
+                        <div><strong>Titimangsa:</strong> ${titimangsa}</div>
+                    </div>
+                `;
+            });
+
+            syncSignatureBlocks();
+        }
+
+        function syncSignatureBlocks() {
+            const teacher = document.getElementById('teacherName')?.value || '...................';
+            const teacherNip = document.getElementById('teacherNip')?.value || '...................';
+            const supervisor = document.getElementById('supervisorName')?.value || '...................';
+            const supervisorNip = document.getElementById('supervisorNip')?.value || '...................';
+            const supervisorRole = document.getElementById('supervisorRoleTitle')?.value || 'Pengawas / Kepala Sekolah';
+            const titimangsa = document.getElementById('titimangsaInput')?.value || 'Garut, ....................';
+
+            const signatureHtml = `
+                <div class="signature-container-nav border-t border-slate-200 pt-4 mt-6">
+                    <div class="signature-grid flex justify-between items-start text-xs text-slate-800">
+                        <div class="signature-box text-center w-5/12">
+                            <p class="font-semibold mb-1">Guru Disupervisi,</p>
+                            <div class="h-16 flex items-end justify-center">
+                                <span class="text-slate-300 text-[10px] italic mb-1">[ Tanda Tangan Digital / Basah ]</span>
+                            </div>
+                            <p class="font-bold underline">${teacher}</p>
+                            <p class="text-[11px] text-slate-600">NIP. ${teacherNip}</p>
+                        </div>
+
+                        <div class="signature-box text-center w-5/12">
+                            <p class="font-semibold mb-0">${titimangsa}</p>
+                            <p class="font-semibold mb-1">${supervisorRole},</p>
+                            <div class="h-16 flex items-end justify-center">
+                                <span class="text-slate-300 text-[10px] italic mb-1">[ Tanda Tangan Digital / Basah ]</span>
+                            </div>
+                            <p class="font-bold underline">${supervisor}</p>
+                            <p class="text-[11px] text-slate-600">NIP. ${supervisorNip}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const containers = document.querySelectorAll('.signature-container-nav');
+            containers.forEach(box => {
+                box.innerHTML = signatureHtml;
+            });
+        }
 
         function switchTab(tabId) {
             const contents = document.querySelectorAll('.tab-content');
@@ -1349,20 +1452,28 @@
             }
         }
 
-        // Executive Summary Modal System
+        // Executive Summary Modal System - Terhubung & Tersinkronisasi
         function generateExecutiveSummaryModal() {
+            updateIdentities(); // Ensure identities and signatures are updated
+
             const role = document.getElementById('globalRoleSelect')?.value || 'mapel';
             const teacher = document.getElementById('teacherName')?.value || '...................';
             const teacherNip = document.getElementById('teacherNip')?.value || '-';
             const school = document.getElementById('schoolName')?.value || '...................';
             const subject = document.getElementById('subjectClass')?.value || '-';
             const supervisor = document.getElementById('supervisorName')?.value || '...................';
+            const supervisorNip = document.getElementById('supervisorNip')?.value || '-';
+            const supervisorRole = document.getElementById('supervisorRoleTitle')?.value || 'Pengawas / Kepala Sekolah';
             const titimangsa = document.getElementById('titimangsaInput')?.value || 'Garut, ....................';
 
             const praScoreText = document.getElementById('praScoreTotal')?.innerText || '-';
             const praPercentText = document.getElementById('praScorePercentage')?.innerText || '-';
             const obsScoreText = document.getElementById('obsScoreTotal')?.innerText || '-';
             const obsPercentText = document.getElementById('obsScorePercentage')?.innerText || '-';
+
+            const triSelf = document.getElementById('triangulasiSelf')?.value || '-';
+            const triFact = document.getElementById('triangulasiFact')?.value || '-';
+            const triAgreed = document.getElementById('triangulasiAgreed')?.value || '-';
 
             const catSupervisor = document.getElementById('pascaCatatanSupervisor')?.value || '-';
             const rencAksi = document.getElementById('pascaRencanaAksi')?.value || '-';
@@ -1373,13 +1484,13 @@
                 <div class="border-b-2 border-emerald-900 pb-3 mb-4 text-center">
                     <h3 class="text-base font-extrabold uppercase tracking-wide text-emerald-950">${school}</h3>
                     <h4 class="text-xs font-bold text-slate-700 uppercase">LAPORAN REKAPITULASI HASIL SUPERVISI AKADEMIK (${role === 'bk' ? 'GURU BK' : 'GURU MAPEL'})</h4>
-                    <p class="text-[10px] text-slate-500">Kebijakan Pembelajaran Mendalam (Deep Learning) — Tahun Pelajaran 2025/2026</p>
+                    <p class="text-[10px] text-slate-500">Kebijakan Pembelajaran Mendalam (Deep Learning) — Kebijakan Kemendikdasmen</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs mb-4">
                     <div><strong>Nama Pendidik:</strong> ${teacher} (${teacherNip})</div>
-                    <div><strong>Mata Pelajaran / Bidang:</strong> ${subject}</div>
-                    <div><strong>Supervisor:</strong> ${supervisor}</div>
+                    <div><strong>${role === 'bk' ? 'Bidang / Sasaran:' : 'Mata Pelajaran / Bidang:'}</strong> ${subject}</div>
+                    <div><strong>Supervisor:</strong> ${supervisor} (${supervisorNip})</div>
                     <div><strong>Titimangsa:</strong> ${titimangsa}</div>
                 </div>
 
@@ -1396,7 +1507,16 @@
                     </div>
                 </div>
 
-                <div class="space-y-3">
+                <div class="space-y-3 text-xs">
+                    <div class="border p-3 rounded-lg bg-slate-50/50">
+                        <h5 class="font-bold text-slate-800 border-b pb-1 mb-2">Matriks Triangulasi Observasi & Solusi Reflektif:</h5>
+                        <div class="grid grid-cols-3 gap-2 text-[11px]">
+                            <div><strong class="text-emerald-800 block">1. Self Refleksi Guru:</strong>${triSelf}</div>
+                            <div><strong class="text-sky-800 block">2. Fakta Observasi:</strong>${triFact}</div>
+                            <div><strong class="text-amber-800 block">3. Kesepakatan Solusi:</strong>${triAgreed}</div>
+                        </div>
+                    </div>
+
                     <div class="border p-3 rounded-lg">
                         <h5 class="font-bold text-slate-800 border-b pb-1 mb-1">Apresiasi & Catatan Evaluasi Supervisor:</h5>
                         <p class="text-slate-600 whitespace-pre-line">${catSupervisor}</p>
@@ -1412,6 +1532,29 @@
                         <p class="text-slate-600 whitespace-pre-line">${dukSekolah}</p>
                     </div>
                 </div>
+
+                <div class="signature-container-modal border-t border-slate-300 pt-4 mt-6">
+                    <div class="flex justify-between items-start text-xs text-slate-800">
+                        <div class="text-center w-5/12">
+                            <p class="font-semibold mb-1">Guru Disupervisi,</p>
+                            <div class="h-14 flex items-end justify-center">
+                                <span class="text-slate-300 text-[9px] italic mb-1">[ Tanda Tangan ]</span>
+                            </div>
+                            <p class="font-bold underline">${teacher}</p>
+                            <p class="text-[10px] text-slate-600">NIP. ${teacherNip}</p>
+                        </div>
+
+                        <div class="text-center w-5/12">
+                            <p class="font-semibold mb-0">${titimangsa}</p>
+                            <p class="font-semibold mb-1">${supervisorRole},</p>
+                            <div class="h-14 flex items-end justify-center">
+                                <span class="text-slate-300 text-[9px] italic mb-1">[ Tanda Tangan ]</span>
+                            </div>
+                            <p class="font-bold underline">${supervisor}</p>
+                            <p class="text-[10px] text-slate-600">NIP. ${supervisorNip}</p>
+                        </div>
+                    </div>
+                </div>
             `;
 
             document.getElementById('custom-modal-container').classList.remove('hidden');
@@ -1422,20 +1565,22 @@
         }
 
         function printModalExecutiveSummary() {
+            document.body.classList.add('is-printing-summary');
             window.print();
-        }
-
-        function printCurrentActiveTab() {
-            window.print();
+            setTimeout(() => {
+                document.body.classList.remove('is-printing-summary');
+            }, 500);
         }
 
         function downloadCurrentNavPdf() {
+            document.body.classList.remove('is-printing-summary');
             window.print();
         }
 
         function printSingleNavTab(tabId) {
             switchTab(tabId);
             setTimeout(() => {
+                document.body.classList.remove('is-printing-summary');
                 window.print();
             }, 150);
         }
@@ -1455,61 +1600,52 @@
             const targetEl = document.getElementById(elementId);
             if (!targetEl) return;
 
-            const teacherName = document.getElementById('teacherName')?.value || 'Guru';
-            const schoolName = document.getElementById('schoolName')?.value || 'Sekolah';
-            const filename = `Supervisi_${elementId}_${teacherName.replace(/\s+/g, '_')}.doc`;
+            updateIdentities();
 
-            const cloneNode = targetEl.cloneNode(true);
-            cloneNode.querySelectorAll('.no-print').forEach(el => el.remove());
+            const school = document.getElementById('schoolName')?.value || 'Sekolah';
+            const teacher = document.getElementById('teacherName')?.value || 'Guru';
+            const role = document.getElementById('globalRoleSelect')?.value || 'mapel';
+            
+            const headerHtml = `
+                <div style="text-align:center; font-family:Arial, sans-serif; margin-bottom:15px; border-bottom:2px solid #000; padding-bottom:5px;">
+                    <h2 style="margin:0; font-size:16px;">${school}</h2>
+                    <h3 style="margin:5px 0; font-size:14px;">DOKUMEN SUPERVISI AKADEMIK (${role === 'bk' ? 'GURU BK' : 'GURU MATA PELAJARAN'})</h3>
+                    <p style="margin:0; font-size:11px; color:#555;">Integrasi Pembelajaran Mendalam (Deep Learning) — Kemendikdasmen</p>
+                </div>
+            `;
 
-            cloneNode.querySelectorAll('input, select, textarea').forEach(input => {
-                const span = document.createElement('span');
-                span.style.fontWeight = 'bold';
-                span.innerText = input.value;
-                input.parentNode.replaceChild(span, input);
-            });
-
-            cloneNode.querySelectorAll('canvas').forEach(c => {
-                const p = document.createElement('p');
-                p.style.fontStyle = 'italic';
-                p.innerText = '[Visualisasi Grafik Radar Supervisi]';
-                c.parentNode.replaceChild(p, c);
-            });
-
-            const headerHTML = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-                      xmlns:w='urn:schemas-microsoft-com:office:word' 
-                      xmlns='http://www.w3.org/TR/REC-html40'>
+            const contentHtml = targetEl.innerHTML;
+            const fullWordContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
                     <meta charset='utf-8'>
-                    <title>Dokumen Hasil Supervisi Akademik</title>
+                    <title>Dokumen Supervisi Akademik</title>
                     <style>
-                        body { font-family: 'Calibri', Arial, sans-serif; font-size: 11pt; line-height: 1.3; }
-                        h2, h3 { color: #047857; margin-bottom: 4px; }
-                        table { border-collapse: collapse; width: 100%; margin-top: 10px; margin-bottom: 10px; }
-                        th, td { border: 1px solid #333333; padding: 6px; text-align: left; font-size: 10pt; }
-                        th { background-color: #f1f5f9; font-weight: bold; }
-                        .signature-grid { width: 100%; margin-top: 30px; }
-                        .signature-box { text-align: center; }
+                        body { font-family: Arial, sans-serif; font-size: 11pt; }
+                        table { border-collapse: collapse; width: 100%; margin-bottom: 15px; }
+                        th, td { border: 1px solid #333; padding: 6px; text-align: left; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                        .no-print, button { display: none !important; }
+                        .signature-container-nav { margin-top: 30px; }
+                        .signature-grid { width: 100%; }
+                        .signature-box { width: 45%; text-align: center; float: left; }
                     </style>
                 </head>
                 <body>
-                    <div style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px;">
-                        <h2 style="margin:0;">${schoolName.toUpperCase()}</h2>
-                        <h4 style="margin:2px 0;">DOKUMEN SUPERVISI AKADEMIK TERPADU</h4>
-                    </div>
+                    ${headerHtml}
+                    ${contentHtml}
+                </body>
+                </html>
             `;
-            const footerHTML = "</body></html>";
-            const fullHTML = headerHTML + cloneNode.innerHTML + footerHTML;
 
-            const blob = new Blob(['\ufeff', fullHTML], {
+            const blob = new Blob(['\ufeff', fullWordContent], {
                 type: 'application/msword'
             });
 
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = `Supervisi_${role.toUpperCase()}_${teacher.replace(/\s+/g, '_')}_${elementId}.doc`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1517,140 +1653,66 @@
         }
 
         function exportDataJSON() {
-            const stateData = {};
+            const data = {};
             document.querySelectorAll('.save-state').forEach(el => {
-                if (el.id) stateData[el.id] = el.value;
+                if (el.id) data[el.id] = el.value;
             });
-            stateData['role'] = document.getElementById('globalRoleSelect')?.value || 'mapel';
+            data['role'] = document.getElementById('globalRoleSelect')?.value || 'mapel';
 
-            const teacher = document.getElementById('teacherName')?.value || 'Guru';
-            const filename = `Data_Supervisi_${teacher.replace(/\s+/g, '_')}.json`;
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateData, null, 2));
-
-            const dlAnchorElem = document.createElement('a');
-            dlAnchorElem.setAttribute("href", dataStr);
-            dlAnchorElem.setAttribute("download", filename);
-            document.body.appendChild(dlAnchorElem);
-            dlAnchorElem.click();
-            dlAnchorElem.remove();
-        }
-
-        function updateIdentities() {
-            syncSignatureBlocks();
-            updateProgressBar();
-        }
-
-        function syncSignatureBlocks() {
-            const teacher = document.getElementById('teacherName')?.value || '...................';
-            const teacherNip = document.getElementById('teacherNip')?.value || '...................';
-            const supervisor = document.getElementById('supervisorName')?.value || '...................';
-            const supervisorNip = document.getElementById('supervisorNip')?.value || '...................';
-            const supervisorRole = document.getElementById('supervisorRoleTitle')?.value || 'Pengawas / Kepala Sekolah';
-            const titimangsa = document.getElementById('titimangsaInput')?.value || 'Garut, ....................';
-
-            const signatureHtml = `
-                <div class="mt-8 pt-4 border-t border-slate-300 signature-container-nav">
-                    <div class="flex justify-between items-start text-xs text-center signature-grid w-full">
-                        <div class="w-5/12 signature-box flex flex-col justify-between h-36">
-                            <div>
-                                <p class="font-semibold text-slate-700">Guru yang Disupervisi,</p>
-                            </div>
-                            <div class="my-auto py-4">
-                                <span class="text-[10px] text-slate-300 italic block">( Tanda Tangan & Stempel )</span>
-                            </div>
-                            <div>
-                                <p class="font-bold underline text-slate-900">${teacher}</p>
-                                <p class="text-[10px] text-slate-600">NIP. ${teacherNip}</p>
-                            </div>
-                        </div>
-
-                        <div class="w-5/12 signature-box flex flex-col justify-between h-36">
-                            <div>
-                                <p class="font-semibold text-slate-700">${titimangsa}<br>${supervisorRole},</p>
-                            </div>
-                            <div class="my-auto py-4">
-                                <span class="text-[10px] text-slate-300 italic block">( Tanda Tangan & Stempel )</span>
-                            </div>
-                            <div>
-                                <p class="font-bold underline text-slate-900">${supervisor}</p>
-                                <p class="text-[10px] text-slate-600">NIP. ${supervisorNip}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            const allTabs = document.querySelectorAll('.tab-content');
-            allTabs.forEach(tab => {
-                const existingSig = tab.querySelector('.signature-container-nav');
-                if (existingSig) {
-                    existingSig.outerHTML = signatureHtml;
-                } else {
-                    tab.insertAdjacentHTML('beforeend', signatureHtml);
-                }
-            });
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Supervisi_Data_${data.teacherName || 'Guru'}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
         }
 
         function triggerImportFileInput() {
-            const fileInput = document.getElementById('importFileInput');
-            if (fileInput) {
-                fileInput.value = '';
-                fileInput.click();
-            }
+            document.getElementById('importFileInput').click();
         }
 
         function importDataJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            const fileReader = new FileReader();
-            fileReader.onload = function(e) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
                 try {
                     const parsed = JSON.parse(e.target.result);
-                    
-                    if (parsed.role) {
-                        switchSupervisionRole(parsed.role);
-                    }
-
+                    if (parsed.role) switchSupervisionRole(parsed.role);
                     Object.keys(parsed).forEach(id => {
                         const elem = document.getElementById(id);
-                        if (elem) {
-                            elem.value = parsed[id];
-                        }
+                        if (elem) elem.value = parsed[id];
                     });
-
                     calculatePraScore();
                     calculateObsScore();
                     updateIdentities();
-
-                    const stateData = {};
-                    document.querySelectorAll('.save-state').forEach(el => {
-                        if (el.id) stateData[el.id] = el.value;
-                    });
-                    localStorage.setItem('supervisi_state', JSON.stringify(stateData));
-
-                    showNotification("✅ Data supervisi JSON berhasil diimpor!");
-
+                    saveStateToLocalStorage();
+                    alertModal("Berhasil!", "Data supervisi dari file JSON berhasil diimpor.");
                 } catch (err) {
-                    showNotification("⚠️ Format file JSON tidak valid!", true);
+                    alertModal("Format File Salah", "Gagal membaca file JSON.");
                 }
             };
-            fileReader.readAsText(file);
-        }
-
-        function showNotification(message, isError = false) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `fixed bottom-5 right-5 ${isError ? 'bg-red-600' : 'bg-emerald-700'} text-white px-4 py-3 rounded-lg shadow-xl z-50 text-xs font-bold flex items-center gap-2`;
-            alertDiv.innerHTML = `<span>${isError ? '⚠️' : '✅'}</span> ${message}`;
-            document.body.appendChild(alertDiv);
-            setTimeout(() => alertDiv.remove(), 3000);
+            reader.readAsText(file);
         }
 
         function resetAllForms() {
-            if (window.confirm("Apakah Anda yakin ingin mereset seluruh data isian supervisi? Data lokal yang tersimpan akan dihapus.")) {
+            if (window.confirm("Apakah Anda yakin ingin mengosongkan/mereset semua data supervisi ke default?")) {
                 localStorage.removeItem('supervisi_state');
                 location.reload();
             }
+        }
+
+        function alertModal(title, message) {
+            const modalBody = document.getElementById('modalBodyContent');
+            modalBody.innerHTML = `
+                <div class="text-center py-4">
+                    <h3 class="text-base font-bold text-slate-800 mb-2">${title}</h3>
+                    <p class="text-xs text-slate-600">${message}</p>
+                </div>
+            `;
+            document.getElementById('custom-modal-container').classList.remove('hidden');
         }
     </script>
 </body>
