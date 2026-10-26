@@ -40,10 +40,16 @@
             min-height: 2.5rem;
             resize: none;
         }
+
+        /* Modal Preview Dialog Custom Styles */
+        .modal-active {
+            overflow: hidden;
+        }
+
         /* Cetak Laporan Penuh & Bersih */
         @media print {
             @page {
-                size: A4;
+                size: A4 portrait;
                 margin: 10mm 12mm;
             }
 
@@ -64,6 +70,14 @@
                 break-before: auto !important;
             }
 
+            /* Saat mencetak halaman terpisah spesifik */
+            body.print-single-tab .tab-content {
+                display: none !important;
+            }
+            body.print-single-tab .tab-content.active-print-target {
+                display: block !important;
+            }
+
             #printable-supervision-area {
                 max-width: 100% !important;
                 width: 100% !important;
@@ -77,15 +91,11 @@
                 padding-bottom: 0.25rem !important;
             }
 
-            .signature-section {
+            .signature-block-printable {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin-top: 0.75rem !important;
+                margin-top: 1rem !important;
                 padding: 0.5rem !important;
-            }
-
-            .signature-section .mb-12 {
-                margin-bottom: 1.75rem !important;
             }
 
             input, select, textarea {
@@ -126,11 +136,11 @@
                     </select>
                 </div>
 
-                <button onclick="downloadPdfReport()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
-                    <span>📕</span> Unduh PDF (.pdf)
+                <button onclick="downloadPdfReportFull()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5" title="Unduh seluruh dokumen menjadi 1 file PDF">
+                    <span>📕</span> PDF Lengkap
                 </button>
-                <button onclick="downloadWordReport()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
-                    <span>📄</span> Unduh Word (.docx)
+                <button onclick="downloadWordReportFull()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5" title="Unduh seluruh dokumen ke Word / Google Dokumen">
+                    <span>📄</span> Word Lengkap
                 </button>
                 <button onclick="exportDataJSON()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
                     <span>💾</span> Simpan (JSON)
@@ -141,7 +151,7 @@
                 <input type="file" id="importFileInput" onchange="importDataJSON(event)" class="hidden" accept=".json">
 
                 <button onclick="window.print()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
-                    <span>🖨️</span> Cetak Laporan
+                    <span>🖨️</span> Cetak Lengkap
                 </button>
                 <button onclick="resetAllForms()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow flex items-center gap-1.5">
                     <span>🔄</span> Reset
@@ -150,7 +160,7 @@
         </div>
     </header>
 
-    <!-- Navigasi Tab -->
+    <!-- Navigasi Tab Utama -->
     <nav class="bg-white border-b border-slate-200 shadow-sm z-20 sticky top-[61px] no-print">
         <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex overflow-x-auto scrollbar-none">
             <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="tab-btn active px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
@@ -177,17 +187,17 @@
     <!-- AREA DOKUMEN & APLIKASI UTAMA -->
     <main id="printable-supervision-area" class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex-grow w-full">
 
-        <!-- IDENTITAS PELAKSANAAN SUPERVISI -->
-        <section id="identity-section" class="bg-white border border-slate-200 rounded-xl p-5 mb-6 shadow-sm">
+        <!-- FORM INPUT IDENTITAS SUPERVISOR DAN GURU (BERLAKU GLOBAL) -->
+        <section id="identity-section" class="bg-white border border-slate-200 rounded-xl p-5 mb-6 shadow-sm no-print">
             <div class="border-b border-emerald-800/30 pb-3 mb-4 flex justify-between items-center flex-wrap gap-2">
                 <div>
-                    <span class="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Dokumen Resmi Supervisi</span>
+                    <span class="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Master Identitas Pelaksanaan</span>
                     <h2 id="docHeaderTitle" class="text-base font-extrabold text-emerald-950 uppercase tracking-wide mt-1">
                         LEMBAR DOKUMEN SUPERVISI AKADEMIK GURU MATA PELAJARAN
                     </h2>
                     <p class="text-xs text-slate-500">Sekolah Menengah Pertama (SMP) — Kebijakan Kemendikdasmen Terkini</p>
                 </div>
-                <div class="text-right no-print flex items-center gap-2">
+                <div class="text-right flex items-center gap-2">
                     <span class="text-xs font-semibold text-slate-600">Alih Modul:</span>
                     <select id="sectionRoleSelect" onchange="switchSupervisionRole(this.value)" class="p-1.5 border border-emerald-500 rounded bg-emerald-50 text-emerald-900 text-xs font-bold cursor-pointer">
                         <option value="mapel">Guru Mata Pelajaran</option>
@@ -196,14 +206,14 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Satuan Pendidikan:</label>
+                    <label class="block font-bold text-slate-700 mb-1">Satuan Pendidikan / Sekolah:</label>
                     <input type="text" id="schoolName" value="SMP Negeri 1 Pembelajaran" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama Guru Disupervisi:</label>
-                    <input type="text" id="teacherName" value="Yani Sopiani, S.Pd." oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <input type="text" id="teacherName" value="Ahmad Salman, S.Pd." oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">NIP / NUPTK Guru:</label>
@@ -214,18 +224,53 @@
                     <input type="text" id="subjectClass" value="IPA / VIII (Fase D)" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nama Supervisor:</label>
-                    <input type="text" id="supervisorName" value="Ida Faridlah, M.Ag." oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <label class="block font-bold text-slate-700 mb-1">Nama Supervisor / Kepala Sekolah:</label>
+                    <input type="text" id="supervisorName" value="Ida Faridlah Sulaeman" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">NIP / NUPTK Supervisor:</label>
-                    <input type="text" id="supervisorNip" value="19721114 199802 2 002" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                    <input type="text" id="supervisorNip" value="19xxxxxx xxxxxx x xxx" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Jabatan Supervisor:</label>
+                    <input type="text" id="supervisorRoleTitle" value="Pengawas / Kepala Sekolah" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Titimangsa / Tanggal Pelaksanaan:</label>
+                    <input type="text" id="titimangsaInput" value="Garut, 15 September 2026" oninput="updateIdentities()" class="save-state w-full p-2 border border-slate-300 rounded font-semibold bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition">
                 </div>
             </div>
         </section>
 
         <!-- TAB 1: OVERVIEW & ANALISIS DATA -->
         <section id="tab-overview" class="tab-content space-y-6">
+            <!-- BAR AKSI CETAK / SIMPAN KHUSUS NAVIGASI OVERVIEW -->
+            <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-3.5 rounded-xl shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 no-print">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">📌</span>
+                    <div>
+                        <h3 id="navTitleOverview" class="text-xs font-extrabold uppercase tracking-wide text-emerald-200">
+                            Halaman Navigasi: Overview & Analisis Data
+                        </h3>
+                        <p class="text-[11px] text-slate-300">Preview, Cetak PDF, atau Simpan Dokumen Terpisah untuk Halaman Ini</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="previewNavSection('tab-overview')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>👁️</span> Preview Halaman
+                    </button>
+                    <button onclick="printSingleNavTab('tab-overview')" class="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📕</span> Cetak PDF Halaman Ini
+                    </button>
+                    <button onclick="downloadSingleNavWord('tab-overview')" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📄</span> Simpan ke Word / Docs
+                    </button>
+                </div>
+            </div>
+
+            <!-- ANCHOR ELEMEN CETAK HANYA UNTUK DOKUMEN CETAK SEPARATE -->
+            <div class="printable-nav-header hidden"></div>
+
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <h2 class="text-lg font-extrabold text-emerald-900 mb-2">Kerangka Kerja Supervisi Akademik Berbasis Pembelajaran & Layanan Mendalam</h2>
                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
@@ -306,17 +351,44 @@
                     </div>
                 </div>
             </div>
+
+            <!-- CONTAINER BLOK TANDA TANGAN (AUTOMATICALLY INJECTED DYNAMICALLY) -->
+            <div class="signature-container-nav"></div>
         </section>
 
         <!-- TAB 2: LANDASAN REGULASI -->
         <section id="tab-regulasi" class="tab-content hidden space-y-6">
+            <!-- BAR AKSI CETAK / SIMPAN KHUSUS NAVIGASI REGULASI -->
+            <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-3.5 rounded-xl shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 no-print">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">📌</span>
+                    <div>
+                        <h3 id="navTitleRegulasi" class="text-xs font-extrabold uppercase tracking-wide text-emerald-200">
+                            Halaman Navigasi: Matriks Landasan Hukum & Regulasi
+                        </h3>
+                        <p class="text-[11px] text-slate-300">Preview, Cetak PDF, atau Simpan Dokumen Terpisah untuk Halaman Ini</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="previewNavSection('tab-regulasi')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>👁️</span> Preview Halaman
+                    </button>
+                    <button onclick="printSingleNavTab('tab-regulasi')" class="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📕</span> Cetak PDF Halaman Ini
+                    </button>
+                    <button onclick="downloadSingleNavWord('tab-regulasi')" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📄</span> Simpan ke Word / Docs
+                    </button>
+                </div>
+            </div>
+
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-lg font-bold text-emerald-900 mb-2">Matriks Landasan Hukum & Regulasi Terkini</h2>
+                <h2 class="text-lg font-bold text-emerald-900 mb-2">Matriks Landasan Hukum & Regulasi Terkini Kemendikdasmen</h2>
                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
                     Halaman ini menyediakan penelusuran interaktif terhadap dokumen hukum formal yang melandasi pelaksanaan supervisi akademik terpadu bagi Guru Mata Pelajaran dan Guru BK di SMP.
                 </p>
 
-                <div class="mb-4">
+                <div class="mb-4 no-print">
                     <input type="text" id="regulasiSearch" onkeyup="filterRegulasiTable()" placeholder="🔍 Cari regulasi atau kata kunci (contoh: Deep Learning, BK, Permendikdasmen)..." class="w-full p-2.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
 
@@ -371,10 +443,37 @@
                     </table>
                 </div>
             </div>
+
+            <!-- CONTAINER BLOK TANDA TANGAN DYNAMIC -->
+            <div class="signature-container-nav"></div>
         </section>
 
         <!-- TAB 3: PRA-OBSERVASI -->
         <section id="tab-pra" class="tab-content hidden space-y-6">
+            <!-- BAR AKSI CETAK / SIMPAN KHUSUS NAVIGASI PRA OBSERVASI -->
+            <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-3.5 rounded-xl shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 no-print">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">📌</span>
+                    <div>
+                        <h3 id="navTitlePra" class="text-xs font-extrabold uppercase tracking-wide text-emerald-200">
+                            Instrumen Pra Observasi Supervisi Pembelajaran Guru Mapel/BK
+                        </h3>
+                        <p class="text-[11px] text-slate-300">Preview, Cetak PDF, atau Simpan Dokumen Terpisah untuk Halaman Ini</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="previewNavSection('tab-pra')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>👁️</span> Preview Halaman
+                    </button>
+                    <button onclick="printSingleNavTab('tab-pra')" class="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📕</span> Cetak PDF Halaman Ini
+                    </button>
+                    <button onclick="downloadSingleNavWord('tab-pra')" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📄</span> Simpan ke Word / Docs
+                    </button>
+                </div>
+            </div>
+
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200 pb-4 mb-4 gap-3">
                     <div>
@@ -511,7 +610,7 @@
                             </tr>
                             <tr>
                                 <td class="p-3 text-center font-bold">5</td>
-                                <td class="p-3 font-semibold">Ktersediaan Media Layanan BK</td>
+                                <td class="p-3 font-semibold">Ketersediaan Media Layanan BK</td>
                                 <td class="p-3">Menyiapkan media variatif/inovatif (PPT, Canva, Biblioedukasi, Sinema Edukasi).</td>
                                 <td class="p-3 text-center"><select id="pra_bk_5" onchange="calculatePraScore()" class="pra-score-bk save-state w-full p-1.5 border rounded font-bold bg-white text-center"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></td>
                                 <td class="p-3"><textarea id="pra_bk_note_5" class="save-state w-full p-1 border rounded auto-expand" rows="1">Media sinema edukasi disiapkan interaktif.</textarea></td>
@@ -542,10 +641,37 @@
                     </table>
                 </div>
             </div>
+
+            <!-- CONTAINER BLOK TANDA TANGAN DYNAMIC -->
+            <div class="signature-container-nav"></div>
         </section>
 
         <!-- TAB 4: OBSERVASI PELAKSANAAN -->
         <section id="tab-obs" class="tab-content hidden space-y-6">
+            <!-- BAR AKSI CETAK / SIMPAN KHUSUS NAVIGASI OBSERVASI PELAKSANAAN -->
+            <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-3.5 rounded-xl shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 no-print">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">📌</span>
+                    <div>
+                        <h3 id="navTitleObs" class="text-xs font-extrabold uppercase tracking-wide text-emerald-200">
+                            Instrumen Observasi Pelaksanaan Supervisi Pembelajaran Guru Mapel/BK
+                        </h3>
+                        <p class="text-[11px] text-slate-300">Preview, Cetak PDF, atau Simpan Dokumen Terpisah untuk Halaman Ini</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="previewNavSection('tab-obs')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>👁️</span> Preview Halaman
+                    </button>
+                    <button onclick="printSingleNavTab('tab-obs')" class="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📕</span> Cetak PDF Halaman Ini
+                    </button>
+                    <button onclick="downloadSingleNavWord('tab-obs')" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📄</span> Simpan ke Word / Docs
+                    </button>
+                </div>
+            </div>
+
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200 pb-4 mb-4 gap-3">
                     <div>
@@ -713,10 +839,37 @@
                     </table>
                 </div>
             </div>
+
+            <!-- CONTAINER BLOK TANDA TANGAN DYNAMIC -->
+            <div class="signature-container-nav"></div>
         </section>
 
         <!-- TAB 5: PASCA & TRIANGULASI -->
         <section id="tab-pasca" class="tab-content hidden space-y-6">
+            <!-- BAR AKSI CETAK / SIMPAN KHUSUS NAVIGASI PASCA OBSERVASI -->
+            <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-3.5 rounded-xl shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 no-print">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">📌</span>
+                    <div>
+                        <h3 id="navTitlePasca" class="text-xs font-extrabold uppercase tracking-wide text-emerald-200">
+                            Instrumen Pasca Observasi & Triangulasi Supervisi Pembelajaran Guru Mapel/BK
+                        </h3>
+                        <p class="text-[11px] text-slate-300">Preview, Cetak PDF, atau Simpan Dokumen Terpisah untuk Halaman Ini</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="previewNavSection('tab-pasca')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>👁️</span> Preview Halaman
+                    </button>
+                    <button onclick="printSingleNavTab('tab-pasca')" class="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📕</span> Cetak PDF Halaman Ini
+                    </button>
+                    <button onclick="downloadSingleNavWord('tab-pasca')" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📄</span> Simpan ke Word / Docs
+                    </button>
+                </div>
+            </div>
+
             <!-- PASCA-OBSERVASI GURU MAPEL -->
             <div id="pascaMapelContainer" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
                 <div>
@@ -827,10 +980,37 @@
                     </div>
                 </div>
             </div>
+
+            <!-- CONTAINER BLOK TANDA TANGAN DYNAMIC -->
+            <div class="signature-container-nav"></div>
         </section>
 
         <!-- TAB 6: IMPLIKASI MANAJERIAL -->
         <section id="tab-implikasi" class="tab-content hidden space-y-6">
+            <!-- BAR AKSI CETAK / SIMPAN KHUSUS NAVIGASI IMPLIKASI MANAJERIAL -->
+            <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-3.5 rounded-xl shadow-md flex flex-col sm:flex-row justify-between items-center gap-3 no-print">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">📌</span>
+                    <div>
+                        <h3 id="navTitleImplikasi" class="text-xs font-extrabold uppercase tracking-wide text-emerald-200">
+                            Instrumen Implikasi Manajerial Supervisi Pembelajaran Guru Mapel/BK
+                        </h3>
+                        <p class="text-[11px] text-slate-300">Preview, Cetak PDF, atau Simpan Dokumen Terpisah untuk Halaman Ini</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="previewNavSection('tab-implikasi')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>👁️</span> Preview Halaman
+                    </button>
+                    <button onclick="printSingleNavTab('tab-implikasi')" class="bg-red-600 hover:bg-red-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📕</span> Cetak PDF Halaman Ini
+                    </button>
+                    <button onclick="downloadSingleNavWord('tab-implikasi')" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+                        <span>📄</span> Simpan ke Word / Docs
+                    </button>
+                </div>
+            </div>
+
             <!-- IMPLIKASI MANAJERIAL GURU MAPEL -->
             <div id="implikasiMapelContainer" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <h2 class="text-lg font-bold text-emerald-900 mb-2">4. Implikasi Manajerial & Rekomendasi Strategic Roadmap (Guru Mapel)</h2>
@@ -860,38 +1040,85 @@
 3. Mengoptimalkan kolaborasi berkala antara Guru BK, Wali Kelas, dan Guru Mapel untuk penanganan dini kesulitan belajar murid.</textarea>
                 </div>
             </div>
+
+            <!-- CONTAINER BLOK TANDA TANGAN DYNAMIC -->
+            <div class="signature-container-nav"></div>
         </section>
 
-        <!-- LEMBAR TANDA TANGAN (BISA DICETAK) -->
-<section class="signature-section mt-8 pt-6 border-t border-slate-300 bg-white p-6 rounded-xl shadow-sm">
-    <div class="grid grid-cols-2 gap-8 text-center text-xs items-end">
-        <!-- Kolom Kiri: Guru Disupervisi -->
-        <div>
-            <p class="mb-12 text-slate-600">Guru Disupervisi,</p>
-            <p class="font-bold underline text-slate-900" id="sigTeacherName">Yani Sopiani, S.Pd.</p>
-            <p class="text-slate-500 mt-0.5" id="sigTeacherNip">NIP. 19850315 201001 1 012</p>
-        </div>
+        <!-- TEMPLATE BLOK LEMBAR TANDA TANGAN (DIAPLIKASIKAN KE SETIAP HALAMAN DICETAK/DIPREVIEW) -->
+        <template id="signature-template">
+            <section class="signature-block-printable mt-6 pt-4 border-t border-slate-300 bg-white p-4 rounded-xl shadow-sm">
+                <div class="grid grid-cols-2 gap-6 text-center text-xs items-end">
+                    <!-- Kolom Kiri: Guru Disupervisi -->
+                    <div>
+                        <p class="text-slate-500 mb-1">Mengetahui & Menyetujui,</p>
+                        <p class="mb-10 text-slate-700 font-bold">Guru Disupervisi</p>
+                        <p class="font-extrabold underline text-slate-900 sig-teacher-name">Yani Sopiani, S.Pd.</p>
+                        <p class="text-slate-600 mt-0.5 sig-teacher-nip">NIP. 19850315 201001 1 012</p>
+                    </div>
 
-        <!-- Kolom Kanan: Titimangsa & Supervisor (Sejajar Tegak Lurus) -->
-        <div class="flex flex-col items-center">
-            <!-- Input Titimangsa dimasukkan ke dalam kolom kanan -->
-            <div class="mb-2 text-center w-full">
-                <input type="text" id="titimangsaInput" value="Ditetapkan di: Garut, 15 September 2026" class="save-state text-center border-b border-dashed border-slate-400 focus:border-emerald-600 focus:outline-none p-1 w-full max-w-xs bg-transparent font-medium text-slate-800">
+                    <!-- Kolom Kanan: Titimangsa & Supervisor -->
+                    <div class="flex flex-col items-center">
+                        <p class="text-slate-600 font-semibold mb-1 sig-titimangsa-val">Garut, 15 September 2026</p>
+                        <p class="mb-10 text-slate-700 font-bold sig-supervisor-role">Supervisor / Kepala Sekolah</p>
+                        <p class="font-extrabold underline text-slate-900 sig-supervisor-name">Ida Faridlah, M.Ag.</p>
+                        <p class="text-slate-600 mt-0.5 sig-supervisor-nip">NIP. 19721114 199802 2 002</p>
+                    </div>
+                </div>
+            </section>
+        </template>
+    </main>
+
+    <!-- MODAL PREVIEW DOKUMEN KHUSUS PER NAVIGASI -->
+    <div id="previewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex justify-center items-center p-3 sm:p-6 no-print overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <!-- Modal Header -->
+            <div class="bg-emerald-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">📄</span>
+                    <div>
+                        <h3 id="modalNavTitle" class="font-bold text-sm sm:text-base text-emerald-100">
+                            Preview Dokumen Halaman Navigasi
+                        </h3>
+                        <p class="text-[11px] text-emerald-300">Pratinjau sebelum dicetak atau disimpan ke Google Dokumen</p>
+                    </div>
+                </div>
+                <button onclick="closePreviewModal()" class="text-slate-300 hover:text-white text-2xl font-bold transition px-2">✕</button>
             </div>
 
-            <p class="mb-12 text-slate-600">Supervisor / Kepala Sekolah,</p>
-            <p class="font-bold underline text-slate-900" id="sigSupervisorName">Ida Faridlah, M.Ag.</p>
-            <p class="text-slate-500 mt-0.5" id="sigSupervisorNip">NIP. 19721114 199802 2 002</p>
+            <!-- Modal Body (Preview Content Area) -->
+            <div id="modalPreviewBody" class="p-6 overflow-y-auto flex-grow bg-slate-100 space-y-4 text-slate-800">
+                <!-- Content will be injected via JS -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2">
+                <div class="text-[11px] text-slate-500 font-medium flex items-center gap-1">
+                    <span>💡 Tip:</span> Klik <strong>"Simpan ke Word / Google Docs"</strong> lalu upload file ke Google Drive Anda.
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="btnModalPrint" onclick="" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                        <span>📕</span> Cetak PDF
+                    </button>
+                    <button id="btnModalWord" onclick="" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                        <span>📄</span> Simpan Word / Docs
+                    </button>
+                    <a href="https://docs.google.com/document/create" target="_blank" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                        <span>🌐</span> Buka Google Docs
+                    </a>
+                    <button onclick="closePreviewModal()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                        Tutup
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-</section>
-    </main>
 
     <!-- FOOTER IDENTITAS PENGEMBANG -->
     <footer class="bg-slate-900 text-slate-400 py-4 mt-auto no-print text-center text-xs border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 space-y-1">
             <p>Platform Riset & Supervisi Akademik Terpadu SMP — Berbasis Regulasi Kemendikdasmen</p>
-            <p class="text-emerald-400 font-semibold">Pengembang: Ida Faridlah</p>
+            <p class="text-emerald-400 font-semibold">Pengembang: IFS</p>
         </div>
     </footer>
 
@@ -899,13 +1126,68 @@
     <script>
         let currentRole = 'mapel';
         let chartInstance = null;
+        let activeTabId = 'tab-overview';
+
+        // Peta Judul Resmi Per Halaman Navigasi Berdasarkan Peran
+        const navigationTitles = {
+            'tab-overview': {
+                mapel: "Instrumen Overview & Analisis Data Supervisi Pembelajaran Guru Mapel",
+                bk: "Instrumen Overview & Analisis Data Supervisi Layanan Guru BK"
+            },
+            'tab-regulasi': {
+                mapel: "Matriks Landasan Regulasi Supervisi Akademik Guru Mapel",
+                bk: "Matriks Landasan Regulasi Supervisi Layanan Guru BK"
+            },
+            'tab-pra': {
+                mapel: "Instrumen Pra Observasi Supervisi Pembelajaran Guru Mapel",
+                bk: "Instrumen Pra Observasi Supervisi Layanan Guru BK"
+            },
+            'tab-obs': {
+                mapel: "Instrumen Observasi Pelaksanaan Supervisi Pembelajaran Guru Mapel",
+                bk: "Instrumen Observasi Pelaksanaan Supervisi Layanan Guru BK"
+            },
+            'tab-pasca': {
+                mapel: "Instrumen Pasca Observasi & Triangulasi Supervisi Pembelajaran Guru Mapel",
+                bk: "Instrumen Pasca Observasi & Triangulasi Supervisi Layanan Guru BK"
+            },
+            'tab-implikasi': {
+                mapel: "Instrumen Implikasi Manajerial Supervisi Pembelajaran Guru Mapel",
+                bk: "Instrumen Implikasi Manajerial Supervisi Layanan Guru BK"
+            }
+        };
+
+        function getNavTitle(tabId) {
+            const roleKey = currentRole === 'mapel' ? 'mapel' : 'bk';
+            return navigationTitles[tabId] ? navigationTitles[tabId][roleKey] : "Instrumen Supervisi Pembelajaran";
+        }
 
         function switchTab(tabId) {
+            activeTabId = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             
             document.getElementById(tabId).classList.remove('hidden');
             document.getElementById('btn-' + tabId).classList.add('active');
+
+            updateNavActionTitles();
+        }
+
+        function updateNavActionTitles() {
+            // Update teks bar kontrol navigasi
+            const roleText = currentRole === 'mapel' ? 'Guru Mapel' : 'Guru BK';
+            
+            if (document.getElementById('navTitleOverview'))
+                document.getElementById('navTitleOverview').innerText = `Halaman Navigasi: Overview & Analisis Data (${roleText})`;
+            if (document.getElementById('navTitleRegulasi'))
+                document.getElementById('navTitleRegulasi').innerText = `Matriks Landasan Hukum & Regulasi (${roleText})`;
+            if (document.getElementById('navTitlePra'))
+                document.getElementById('navTitlePra').innerText = `Instrumen Pra Observasi Supervisi Pembelajaran ${roleText}`;
+            if (document.getElementById('navTitleObs'))
+                document.getElementById('navTitleObs').innerText = `Instrumen Observasi Pelaksanaan Supervisi Pembelajaran ${roleText}`;
+            if (document.getElementById('navTitlePasca'))
+                document.getElementById('navTitlePasca').innerText = `Instrumen Pasca Observasi & Triangulasi Supervisi Pembelajaran ${roleText}`;
+            if (document.getElementById('navTitleImplikasi'))
+                document.getElementById('navTitleImplikasi').innerText = `Instrumen Implikasi Manajerial Supervisi Pembelajaran ${roleText}`;
         }
 
         function getPredikat(percentage) {
@@ -965,21 +1247,41 @@
                 document.getElementById('implikasiBkContainer').classList.remove('hidden');
             }
 
+            updateNavActionTitles();
             calculatePraScore();
             calculateObsScore();
+            updateIdentities();
             saveAllData();
         }
 
-        function updateIdentities() {
+        function renderSignatureBlocks() {
+            const template = document.getElementById('signature-template');
+            if (!template) return;
+
             const tName = document.getElementById('teacherName').value || '-';
             const tNip = document.getElementById('teacherNip').value || '-';
             const sName = document.getElementById('supervisorName').value || '-';
             const sNip = document.getElementById('supervisorNip').value || '-';
+            const sRole = document.getElementById('supervisorRoleTitle').value || 'Supervisor / Kepala Sekolah';
+            const tManga = document.getElementById('titimangsaInput').value || 'Garut, 15 September 2026';
 
-            document.getElementById('sigTeacherName').innerText = tName;
-            document.getElementById('sigTeacherNip').innerText = 'NIP. ' + tNip;
-            document.getElementById('sigSupervisorName').innerText = sName;
-            document.getElementById('sigSupervisorNip').innerText = 'NIP. ' + sNip;
+            document.querySelectorAll('.signature-container-nav').forEach(container => {
+                container.innerHTML = '';
+                const clone = template.content.cloneNode(true);
+                
+                clone.querySelector('.sig-teacher-name').innerText = tName;
+                clone.querySelector('.sig-teacher-nip').innerText = 'NIP. ' + tNip;
+                clone.querySelector('.sig-supervisor-name').innerText = sName;
+                clone.querySelector('.sig-supervisor-nip').innerText = 'NIP. ' + sNip;
+                clone.querySelector('.sig-supervisor-role').innerText = sRole;
+                clone.querySelector('.sig-titimangsa-val').innerText = tManga;
+
+                container.appendChild(clone);
+            });
+        }
+
+        function updateIdentities() {
+            renderSignatureBlocks();
         }
 
         function calculatePraScore() {
@@ -1070,15 +1372,110 @@
             chartInstance.update();
         }
 
-        /* --- FUNGSI UNDUH DOKUMEN PDF (OTOMATIS) --- */
-        function downloadPdfReport() {
-            const element = document.getElementById('printable-supervision-area');
-            const teacherName = document.getElementById('teacherName').value || 'Guru';
-            const roleName = currentRole === 'mapel' ? 'Mapel' : 'BK';
+        /* --- FUNGSI MAKE KOP IDENTITAS UNTUK DOKUMEN CETAK NAVIGASI SEPARATE --- */
+        function createHeaderIdentityHTML(navTitle) {
+            const school = document.getElementById('schoolName').value || '-';
+            const teacher = document.getElementById('teacherName').value || '-';
+            const tNip = document.getElementById('teacherNip').value || '-';
+            const subject = document.getElementById('subjectClass').value || '-';
+            const supervisor = document.getElementById('supervisorName').value || '-';
+            const sNip = document.getElementById('supervisorNip').value || '-';
+
+            return `
+                <div class="printable-header bg-emerald-50/50 p-4 rounded-xl border border-emerald-300 mb-5">
+                    <div class="text-center border-b border-emerald-800 pb-2 mb-3">
+                        <h2 class="text-base font-extrabold text-emerald-950 uppercase tracking-wide">${navTitle}</h2>
+                        <p class="text-xs text-slate-600 font-semibold">${school}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-slate-800">
+                        <div><strong>Guru Disupervisi:</strong> ${teacher} (${tNip})</div>
+                        <div><strong>Supervisor:</strong> ${supervisor} (${sNip})</div>
+                        <div><strong>Mata Pelajaran/BK:</strong> ${subject}</div>
+                        <div><strong>Tanggal Supervisi:</strong> ${document.getElementById('titimangsaInput').value || '-'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* --- FUNGSI PREVIEW NAVIGASI HALAMAN (MODAL) --- */
+        function previewNavSection(tabId) {
+            const navTitle = getNavTitle(tabId);
+            const section = document.getElementById(tabId);
+            if (!section) return;
+
+            document.getElementById('modalNavTitle').innerText = navTitle;
             
+            const modalBody = document.getElementById('modalPreviewBody');
+            modalBody.innerHTML = '';
+
+            // Clone section content & create formatted view
+            const headerHTML = createHeaderIdentityHTML(navTitle);
+            const contentClone = section.cloneNode(true);
+            
+            // Un-hide nested content for role in clone
+            contentClone.classList.remove('hidden');
+
+            // Format Form Controls for Clean Preview
+            contentClone.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.classList.contains('no-print') || el.closest('.no-print')) return;
+                const parent = el.parentNode;
+                let valText = '';
+                if (el.tagName.toLowerCase() === 'select') {
+                    valText = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value;
+                } else if (el.type === 'checkbox') {
+                    valText = el.checked ? '☑ (Ya)' : '☐ (Tidak)';
+                } else {
+                    valText = el.value || '-';
+                }
+                const span = document.createElement('span');
+                span.className = 'font-bold text-slate-900 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block text-xs';
+                span.textContent = valText;
+                if (parent) parent.replaceChild(span, el);
+            });
+
+            // Remove internal no-print bars in preview
+            contentClone.querySelectorAll('.no-print').forEach(el => el.remove());
+
+            modalBody.innerHTML = headerHTML + contentClone.innerHTML;
+
+            // Setup Footer Modal Buttons
+            document.getElementById('btnModalPrint').onclick = function() { printSingleNavTab(tabId); };
+            document.getElementById('btnModalWord').onclick = function() { downloadSingleNavWord(tabId); };
+
+            document.getElementById('previewModal').classList.remove('hidden');
+            document.body.classList.add('modal-active');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewModal').classList.add('hidden');
+            document.body.classList.remove('modal-active');
+        }
+
+        /* --- FUNGSI CETAK SINGLE NAV TAB (PDF TERPISAH PER NAVIGASI) --- */
+        function printSingleNavTab(tabId) {
+            const navTitle = getNavTitle(tabId);
+            const section = document.getElementById(tabId);
+            if (!section) return;
+
+            const teacherName = document.getElementById('teacherName').value || 'Guru';
+            
+            // Temporarily Inject Printable Header & Add Active Class
+            const headerHTML = createHeaderIdentityHTML(navTitle);
+            const headerContainer = section.querySelector('.printable-nav-header') || document.createElement('div');
+            headerContainer.className = 'printable-nav-header mb-4';
+            headerContainer.innerHTML = headerHTML;
+            if (!section.contains(headerContainer)) {
+                section.insertBefore(headerContainer, section.firstChild);
+            }
+
+            // Flag body for single tab print CSS
+            document.body.classList.add('print-single-tab');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-print-target'));
+            section.classList.add('active-print-target');
+
             const opt = {
                 margin:       [8, 8, 8, 8],
-                filename:     `Laporan_Supervisi_${roleName}_${teacherName.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+                filename:     `${navTitle.replace(/[^a-z0-9]/gi, '_')}_${teacherName.replace(/[^a-z0-9]/gi, '_')}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -1087,13 +1484,97 @@
             // Menyembunyikan elemen no-print secara eksplisit selama pembuatan PDF
             document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
 
+            html2pdf().set(opt).from(section).save().then(() => {
+                document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+                document.body.classList.remove('print-single-tab');
+                section.classList.remove('active-print-target');
+                if (headerContainer) headerContainer.remove();
+            }).catch(err => {
+                console.error("Error PDF generation", err);
+                document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+                document.body.classList.remove('print-single-tab');
+            });
+        }
+
+        /* --- FUNGSI SIMPAN KE WORD / GOOGLE DOCS (PER NAVIGASI) --- */
+        function downloadSingleNavWord(tabId) {
+            const navTitle = getNavTitle(tabId);
+            const section = document.getElementById(tabId);
+            if (!section) return;
+
+            const teacherName = document.getElementById('teacherName').value || 'Guru';
+            const headerHTML = createHeaderIdentityHTML(navTitle);
+
+            const contentClone = section.cloneNode(true);
+            contentClone.querySelectorAll('.no-print').forEach(el => el.remove());
+
+            contentClone.querySelectorAll('input, select, textarea').forEach(el => {
+                const parent = el.parentNode;
+                let valText = '';
+                if (el.tagName.toLowerCase() === 'select') {
+                    valText = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value;
+                } else if (el.type === 'checkbox') {
+                    valText = el.checked ? '☑ (Ya)' : '☐ (Tidak)';
+                } else {
+                    valText = el.value || '-';
+                }
+                const span = document.createElement('span');
+                span.textContent = valText;
+                span.style.fontWeight = 'bold';
+                if (parent) parent.replaceChild(span, el);
+            });
+
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>${navTitle}</title>
+                    <style>
+                        body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #1e293b; }
+                        h1, h2, h3, h4 { color: #047857; margin-top: 10px; margin-bottom: 5px; }
+                        table { border-collapse: collapse; width: 100%; margin-top: 8px; margin-bottom: 12px; }
+                        th, td { border: 1px solid #64748b; padding: 6px; text-align: left; vertical-align: top; font-size: 10pt; }
+                        th { background-color: #ecfdf5; color: #064e3b; font-weight: bold; }
+                        .printable-header { background-color: #f0fdf4; border: 1px solid #a7f3d0; padding: 10px; margin-bottom: 15px; }
+                        .hidden { display: none !important; }
+                    </style>
+                </head>
+                <body>
+                    ${headerHTML}
+                    ${contentClone.innerHTML}
+                </body>
+                </html>
+            `;
+
+            const converted = htmlDocx.asBlob(htmlContent);
+            const fileName = `${navTitle.replace(/[^a-z0-9]/gi, '_')}_${teacherName.replace(/[^a-z0-9]/gi, '_')}.docx`;
+            saveAs(converted, fileName);
+        }
+
+        /* --- FUNGSI UNDUH DOKUMEN PDF (PENUH) --- */
+        function downloadPdfReportFull() {
+            const element = document.getElementById('printable-supervision-area');
+            const teacherName = document.getElementById('teacherName').value || 'Guru';
+            const roleName = currentRole === 'mapel' ? 'Mapel' : 'BK';
+            
+            const opt = {
+                margin:       [8, 8, 8, 8],
+                filename:     `Laporan_Lengkap_Supervisi_${roleName}_${teacherName.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+
             html2pdf().set(opt).from(element).save().then(() => {
                 document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
             });
         }
 
-        /* --- FUNGSI UNDUH DOKUMEN WORD (.DOCX) --- */
-        function downloadWordReport() {
+        /* --- FUNGSI UNDUH DOKUMEN WORD (.DOCX PENUH) --- */
+        function downloadWordReportFull() {
             const reportElement = document.getElementById('printable-supervision-area') || document.body;
             const teacherName = document.getElementById('teacherName').value || 'Guru';
             const roleName = currentRole === 'mapel' ? 'Mapel' : 'BK';
@@ -1114,7 +1595,7 @@
                 const span = document.createElement('span');
                 span.textContent = valText;
                 span.style.fontWeight = 'bold';
-                parent.replaceChild(span, el);
+                if (parent) parent.replaceChild(span, el);
             });
 
             const htmlContent = `
@@ -1138,7 +1619,7 @@
             `;
 
             const converted = htmlDocx.asBlob(htmlContent);
-            const fileName = `Laporan_Supervisi_${roleName}_${teacherName.replace(/[^a-z0-9]/gi, '_')}.docx`;
+            const fileName = `Laporan_Lengkap_Supervisi_${roleName}_${teacherName.replace(/[^a-z0-9]/gi, '_')}.docx`;
             saveAs(converted, fileName);
         }
 
@@ -1209,60 +1690,31 @@
         }
 
         function resetAllForms() {
-    if (confirm("Apakah Anda yakin ingin mengosongkan seluruh data pada formulir?")) {
-        // 1. Simpan nilai titimangsa sebelum di-reset
-        const titimangsaInput = document.getElementById('titimangsaInput');
-        const savedTitimangsa = titimangsaInput ? titimangsaInput.value : '';
+            if (confirm("Apakah Anda yakin ingin mengosongkan seluruh data pada formulir?")) {
+                const titimangsaInput = document.getElementById('titimangsaInput');
+                const savedTitimangsa = titimangsaInput ? titimangsaInput.value : '';
 
-        // 2. Hapus data di LocalStorage
-        localStorage.removeItem('supervisi_app_data');
+                localStorage.removeItem('supervisi_app_data');
 
-        // 3. Kosongkan semua input, select, dan textarea (KECUALI input titimangsa)
-        const inputs = document.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            if (input.id === 'titimangsaInput') {
-                return; // Lompati input titimangsa agar tidak terhapus
-            }
+                const inputs = document.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (input.id === 'titimangsaInput') return;
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                    } else if (input.type !== 'button' && input.type !== 'submit' && input.type !== 'reset') {
+                        input.value = '';
+                    }
+                });
 
-            if (input.type === 'checkbox' || input.type === 'radio') {
-                input.checked = false;
-            } else if (input.type !== 'button' && input.type !== 'submit' && input.type !== 'reset') {
-                input.value = '';
-            }
-        });
-
-        // 4. Kosongkan tampilan teks nama & NIP di lembar tanda tangan
-        const sigTeacherName = document.getElementById('sigTeacherName');
-        const sigTeacherNip = document.getElementById('sigTeacherNip');
-        const sigSupervisorName = document.getElementById('sigSupervisorName');
-        const sigSupervisorNip = document.getElementById('sigSupervisorNip');
-
-        if (sigTeacherName) sigTeacherName.textContent = '( .................... )';
-        if (sigTeacherNip) sigTeacherNip.textContent = 'NIP. -';
-        if (sigSupervisorName) sigSupervisorName.textContent = '( .................... )';
-        if (sigSupervisorNip) sigSupervisorNip.textContent = 'NIP. -';
-
-        // 5. Pastikan nilai titimangsa tetap utuh/kembali terisi
-        if (titimangsaInput) {
-            titimangsaInput.value = savedTitimangsa || "Ditetapkan di: Garut, 15 September 2026";
-        }
-
-        // 6. Reset state data internal jika ada
-        if (typeof appData !== 'undefined') {
-            Object.keys(appData).forEach(key => {
-                if (typeof appData[key] === 'object' && appData[key] !== null) {
-                    appData[key] = Array.isArray(appData[key]) ? [] : {};
-                } else {
-                    appData[key] = '';
+                if (titimangsaInput) {
+                    titimangsaInput.value = savedTitimangsa || "Garut, 15 September 2026";
                 }
-            });
-        }
 
-        // 7. Perbarui UI/Grafik jika fungsi pendukung tersedia
-        if (typeof updateCharts === 'function') updateCharts();
-        if (typeof updateIdentities === 'function') updateIdentities();
-    }
-}
+                updateIdentities();
+                calculatePraScore();
+                calculateObsScore();
+            }
+        }
 
         window.onload = function() {
             const ctx = document.getElementById('profilLulusanChart').getContext('2d');
@@ -1318,10 +1770,12 @@
                 });
             });
 
+            renderSignatureBlocks();
             loadSavedData();
             calculatePraScore();
             calculateObsScore();
             updateIdentities();
+            updateNavActionTitles();
         };
     </script>
 </body>
