@@ -275,22 +275,22 @@
     <!-- Navigasi Tab Utama -->
     <nav class="bg-white border-b border-slate-200 shadow-sm z-20 sticky top-[61px] no-print">
         <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex overflow-x-auto scrollbar-none">
-            <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="tab-btn active px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
+            <button onclick="switchTab('tab-overview')" id="btn-tab-overview" data-name="Overview_dan_Analisis_Data" class="tab-btn active px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
                 📊 Overview & Analisis Data
             </button>
-            <button onclick="switchTab('tab-regulasi')" id="btn-tab-regulasi" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
+            <button onclick="switchTab('tab-regulasi')" id="btn-tab-regulasi" data-name="Landasan_Regulasi" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
                 ⚖️ Landasan Regulasi
             </button>
-            <button onclick="switchTab('tab-pra')" id="btn-tab-pra" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
+            <button onclick="switchTab('tab-pra')" id="btn-tab-pra" data-name="1_Pra_Observasi" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
                 📝 1. Pra-Observasi
             </button>
-            <button onclick="switchTab('tab-obs')" id="btn-tab-obs" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
+            <button onclick="switchTab('tab-obs')" id="btn-tab-obs" data-name="2_Observasi_Pelaksanaan" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
                 👁️ 2. Observasi Pelaksanaan
             </button>
-            <button onclick="switchTab('tab-pasca')" id="btn-tab-pasca" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
+            <button onclick="switchTab('tab-pasca')" id="btn-tab-pasca" data-name="3_Pasca_dan_Triangulasi" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
                 🔄 3. Pasca & Triangulasi
             </button>
-            <button onclick="switchTab('tab-implikasi')" id="btn-tab-implikasi" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
+            <button onclick="switchTab('tab-implikasi')" id="btn-tab-implikasi" data-name="4_Implikasi_Manajerial" class="tab-btn px-4 py-3 text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 hover:text-emerald-800 transition">
                 🏛️ 4. Implikasi Manajerial
             </button>
         </div>
@@ -1099,6 +1099,7 @@
     <script>
         // Global variables & initialization
         let chartInstance = null;
+        const defaultPageTitle = "Portal Pusat Riset Akademik - Supervisi Pembelajaran Mendalam (Deep Learning)";
 
         window.onload = function() {
             renderChart();
@@ -1110,6 +1111,19 @@
             loadSavedState();
             updateProgressBar();
         };
+
+        function getActiveNavName() {
+            const activeBtn = document.querySelector('.tab-btn.active');
+            if (activeBtn && activeBtn.dataset.name) {
+                return activeBtn.dataset.name;
+            }
+            return 'Dokumen_Supervisi';
+        }
+
+        function getCleanTeacherName() {
+            const teacher = document.getElementById('teacherName')?.value || 'Guru';
+            return teacher.replace(/[^a-zA-Z0-9_\-]/g, '_').replace(/_+/g, '_');
+        }
 
         function updateIdentities() {
             const school = document.getElementById('schoolName')?.value || 'SMP Negeri 1 Pembelajaran';
@@ -1452,9 +1466,9 @@
             }
         }
 
-        // Executive Summary Modal System - Terhubung & Tersinkronisasi
+        // Executive Summary Modal System
         function generateExecutiveSummaryModal() {
-            updateIdentities(); // Ensure identities and signatures are updated
+            updateIdentities();
 
             const role = document.getElementById('globalRoleSelect')?.value || 'mapel';
             const teacher = document.getElementById('teacherName')?.value || '...................';
@@ -1564,24 +1578,46 @@
             document.getElementById('custom-modal-container').classList.add('hidden');
         }
 
+        // PERBAIKAN SINKRONISASI NAMA FILE CETAK PDF & DIALOG CETAK
         function printModalExecutiveSummary() {
             document.body.classList.add('is-printing-summary');
+            const cleanTeacher = getCleanTeacherName();
+            document.title = `Ringkasan_Laporan_Supervisi_${cleanTeacher}`;
+            
             window.print();
+            
             setTimeout(() => {
                 document.body.classList.remove('is-printing-summary');
+                document.title = defaultPageTitle;
             }, 500);
         }
 
         function downloadCurrentNavPdf() {
             document.body.classList.remove('is-printing-summary');
+            const activeNav = getActiveNavName();
+            const cleanTeacher = getCleanTeacherName();
+            document.title = `${activeNav}_${cleanTeacher}`;
+
             window.print();
+
+            setTimeout(() => {
+                document.title = defaultPageTitle;
+            }, 500);
         }
 
         function printSingleNavTab(tabId) {
             switchTab(tabId);
             setTimeout(() => {
                 document.body.classList.remove('is-printing-summary');
+                const activeNav = getActiveNavName();
+                const cleanTeacher = getCleanTeacherName();
+                document.title = `${activeNav}_${cleanTeacher}`;
+
                 window.print();
+
+                setTimeout(() => {
+                    document.title = defaultPageTitle;
+                }, 500);
             }, 150);
         }
 
@@ -1605,7 +1641,9 @@
             const school = document.getElementById('schoolName')?.value || 'Sekolah';
             const teacher = document.getElementById('teacherName')?.value || 'Guru';
             const role = document.getElementById('globalRoleSelect')?.value || 'mapel';
-            
+            const activeNav = getActiveNavName();
+            const cleanTeacher = getCleanTeacherName();
+
             const headerHtml = `
                 <div style="text-align:center; font-family:Arial, sans-serif; margin-bottom:15px; border-bottom:2px solid #000; padding-bottom:5px;">
                     <h2 style="margin:0; font-size:16px;">${school}</h2>
@@ -1619,7 +1657,7 @@
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head>
                     <meta charset='utf-8'>
-                    <title>Dokumen Supervisi Akademik</title>
+                    <title>${activeNav}_${cleanTeacher}</title>
                     <style>
                         body { font-family: Arial, sans-serif; font-size: 11pt; }
                         table { border-collapse: collapse; width: 100%; margin-bottom: 15px; }
@@ -1645,7 +1683,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Supervisi_${role.toUpperCase()}_${teacher.replace(/\s+/g, '_')}_${elementId}.doc`;
+            a.download = `${activeNav}_${cleanTeacher}.doc`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1658,11 +1696,12 @@
                 if (el.id) data[el.id] = el.value;
             });
             data['role'] = document.getElementById('globalRoleSelect')?.value || 'mapel';
+            const cleanTeacher = getCleanTeacherName();
 
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `Supervisi_Data_${data.teacherName || 'Guru'}.json`);
+            downloadAnchor.setAttribute("download", `Data_Supervisi_${cleanTeacher}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
